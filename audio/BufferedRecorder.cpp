@@ -5,7 +5,7 @@
 #define AUDIO_CHUNKSIZE 1024
 
 namespace fau {
-	BufferedRecorder::BufferedRecorder(const unsigned int sampleRate, const unsigned int channelCount, Buffer* buffer) : 
+	BufferedRecorder::BufferedRecorder(const uint sampleRate, const uint channelCount, Buffer* buffer) : 
 		sampleRate(sampleRate), channelCount(channelCount), buffer(buffer) {
 		switch (channelCount) {
 		case(1):

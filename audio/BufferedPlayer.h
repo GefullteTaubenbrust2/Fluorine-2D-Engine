@@ -20,7 +20,7 @@ namespace fau {
 
 		ALsizei sampleRate;
 		ALboolean loop = false;
-		unsigned int source = 0;
+		uint source = 0;
 		bool source_loaded = false;
 
 	public:
@@ -87,7 +87,7 @@ namespace fau {
 
 		/// <summary> Set the position of the source relative to the listener </summary>
 		/// <param name="pos"> The position as a 3D vector </param>
-		void setPosition(const glm::vec3 pos);
+		void setPosition(const glm::vec3& pos);
 
 		/// <summary> Get the position of the source relative to the listener </summary>
 		/// <returns> The position as a 3D vector </returns>
@@ -95,7 +95,7 @@ namespace fau {
 
 		/// <summary> Set the velocity of the source relative to the listener </summary>
 		/// <param name="pos"> The velocity as a 3D vector </param>
-		void setVelocity(const glm::vec3 pos);
+		void setVelocity(const glm::vec3& pos);
 
 		/// <summary> Get the velocity of the source relative to the listener </summary>
 		/// <returns> The velocity as a 3D vector </returns>

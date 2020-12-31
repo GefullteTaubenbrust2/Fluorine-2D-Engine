@@ -61,7 +61,7 @@ namespace fau {
 		return cos_approx(x);
 	}
 
-	FourierBuffer::FourierBuffer(const unsigned int exponent) : 
+	FourierBuffer::FourierBuffer(const uint exponent) : 
 		exponent(exponent), size(1 << exponent) {
 		even = new flo::Complex<double>*[exponent];
 		odd = new flo::Complex<double>*[exponent];
@@ -146,24 +146,24 @@ namespace fau {
 		for (int i = 0; i < buffer->size; ++i) input[i] = flo::Complex<double>(input[i].real / buffer->size, -input[i].imag / buffer->size);
 	}
 
-	AudioVisualizer::AudioVisualizer(const unsigned int exponent, const float base, const unsigned int peak_frequency) : exponent(exponent), sampleCount(1 << exponent), base(base), peak_frequency(peak_frequency), buf(exponent) {
-		std::vector<unsigned int> indexes_raw;
-		unsigned int last = 0;
+	AudioVisualizer::AudioVisualizer(const uint exponent, const float base, const uint peak_frequency) : exponent(exponent), sampleCount(1 << exponent), base(base), peak_frequency(peak_frequency), buf(exponent) {
+		std::vector<uint> indexes_raw;
+		uint last = 0;
 		for (double b = 1; b < std::min(peak_frequency, sampleCount); b *= base) {
-			const unsigned int i = (unsigned int)b;
+			const uint i = (uint)b;
 			if (i == last) continue;
 			indexes_raw.push_back(i);
 			last = i;
 		}
 		returned_size = indexes_raw.size();
-		indexes = new unsigned int[returned_size];
+		indexes = new uint[returned_size];
 		for (int i = 0; i < returned_size; ++i) indexes[i] = indexes_raw[i];
 		output = new double[returned_size];
 		input = new flo::Complex<double>[sampleCount];
 	}
 
-	double* AudioVisualizer::getSpectrum(i16* samples, const unsigned int sampleRate, const unsigned int sampleCount, const unsigned int channelCount, const double playingOffset) {
-		const unsigned int sample = playingOffset * sampleRate * channelCount;
+	double* AudioVisualizer::getSpectrum(i16* samples, const uint sampleRate, const uint sampleCount, const uint channelCount, const double playingOffset) {
+		const uint sample = playingOffset * sampleRate * channelCount;
 		for (int i = sample; i < sample + AudioVisualizer::sampleCount; ++i) {
 			if (i >= sampleCount) input[i - sample] = flo::Complex<double>(0, 0);
 			else input[i - sample] = flo::Complex<double>(samples[i], 0);
@@ -190,7 +190,7 @@ namespace fau {
 
 	void AudioVisualizer::operator=(const AudioVisualizer& av) {
 		dispose();
-		indexes = new unsigned int[av.returned_size];
+		indexes = new uint[av.returned_size];
 		std::copy(av.indexes, av.indexes + av.returned_size, indexes);
 		input = new flo::Complex<double>[av.buf.size];
 		buf = av.buf;
@@ -217,7 +217,7 @@ namespace fau {
 		}
 	}
 
-	FilteredBufferStream::FilteredBufferStream(Buffer* buffer, void(*filter)(flo::Complex<double>* samples, const unsigned int array_size, const unsigned int samplePos), const unsigned int exp) :
+	FilteredBufferStream::FilteredBufferStream(Buffer* buffer, void(*filter)(flo::Complex<double>* samples, const uint array_size, const uint samplePos), const uint exp) :
 		buffer(buffer), filter(filter)  {
 		FilteredBufferStream::loadCount = 1 << exp;
 		FilteredBufferStream::sampleCount = buffer->sampleCount;
@@ -227,12 +227,12 @@ namespace fau {
 		fbuf = FourierBuffer(exp);
 	}
 
-	short* FilteredBufferStream::retrieveSamples(const unsigned int sample) {
-		const unsigned int max = std::min(sampleCount, sample + loadCount);
-		const unsigned int min = std::max(0u, sample);
+	short* FilteredBufferStream::retrieveSamples(const uint sample) {
+		const uint max = std::min(sampleCount, sample + loadCount);
+		const uint min = std::max(0u, sample);
 		retrieve = std::max((int)max - (int)min, 0);
 		eof = min > max;
-		for (unsigned int i = min; i < max; ++i) {
+		for (uint i = min; i < max; ++i) {
 			complex_buffer[i - sample] = flo::Complex<double>(buffer->samples[i], 0);
 		}
 		if (retrieve <= 0) {

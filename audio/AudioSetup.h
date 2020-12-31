@@ -67,7 +67,7 @@ namespace fau {
 	/// <param name="channelCount"> The channelCount of the samples (giving the value of e.g. a buffer is not always neccessary, meaning you can mess around with this value within reason)</param>
 	/// <param name="delay_millis"> The delay for the reverb in milliseconds (the longer the delay, the longer it takes until echoes are heard)</param>
 	/// <param name="decay_f"> The decay constant for the reverb (The higher, the faster the echoes will fade away)</param>
-	void reverberate(i16* samples, const unsigned int sampleCount, const unsigned int sampleRate, const unsigned int channelCount, const float delay_millis, const float decay_f);
+	void reverberate(i16* samples, const uint sampleCount, const uint sampleRate, const uint channelCount, const float delay_millis, const float decay_f);
 
 	struct Buffer;
 	void reverberate(Buffer& buffer, const float delay_millis, const float decay_f);

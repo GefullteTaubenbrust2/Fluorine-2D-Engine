@@ -9,12 +9,12 @@
 #include "AErrorHandler.h"
 
 namespace fau {
-	unsigned int bytesToEndian(const char bytes[4], const bool big) {
+	uint bytesToEndian(const char bytes[4], const bool big) {
 		if (big) {
-			return ((unsigned int)(unsigned char)bytes[0] << 24) | ((unsigned int)(unsigned char)bytes[0] << 16) | ((unsigned int)(unsigned char)bytes[2] << 8) | ((unsigned int)(unsigned char)bytes[3]);
+			return ((uint)(unsigned char)bytes[0] << 24) | ((uint)(unsigned char)bytes[0] << 16) | ((uint)(unsigned char)bytes[2] << 8) | ((uint)(unsigned char)bytes[3]);
 		}
 		else {
-			return ((unsigned int)(unsigned char)bytes[3] << 24) | ((unsigned int)(unsigned char)bytes[2] << 16) | ((unsigned int)(unsigned char)bytes[1] << 8) | ((unsigned int)(unsigned char)bytes[0]);
+			return ((uint)(unsigned char)bytes[3] << 24) | ((uint)(unsigned char)bytes[2] << 16) | ((uint)(unsigned char)bytes[1] << 8) | ((uint)(unsigned char)bytes[0]);
 		}
 	}
 		
@@ -22,7 +22,7 @@ namespace fau {
 
 	namespace oggStream {
 		int openStream(const char* filename);
-		int loadSamples(short* samples, unsigned int size, unsigned int offset, unsigned int stream_id, unsigned int channelCount);
+		int loadSamples(short* samples, uint size, uint offset, uint stream_id, uint channelCount);
 		void closeStream(const int id);
 		OggBuffer getInfo(int id);
 	}
@@ -77,7 +77,7 @@ void fau::loadWAVFile(const std::string name, fau::Buffer* buffer) {
 
 	input.read(chars, 4);
 
-	const unsigned int num_bytes = bytesToEndian(chars, false);
+	const uint num_bytes = bytesToEndian(chars, false);
 	buffer->sampleCount = num_bytes >> (1 - bitshift);
 #if (_DEBUG) 
 	std::cout << "loading file..." << '\n';
@@ -138,7 +138,7 @@ void fau::loadOGGFile(const std::string name, Buffer* buffer) {
 	char* pcm = new char[sampleCount * 2];
 	buffer->samples = new short[size / 2];
 	int current_section;
-	for (unsigned int i = 0; i < sampleCount; i += 4096) {
+	for (uint i = 0; i < sampleCount; i += 4096) {
 		ov_read(&vf, pcm + i, size - i, 0, 2, 1, &current_section);
 	}
 	buffer->samples = (short*)pcm;*/
@@ -151,7 +151,7 @@ void fau::loadOGGFile(const std::string name, Buffer* buffer) {
 	buffer->channelCount = buf.channelCount;
 }
 
-fau::LoadingStreamWAV::LoadingStreamWAV(const std::string source, const unsigned int loadCount) {
+fau::LoadingStreamWAV::LoadingStreamWAV(const std::string& source, const uint loadCount) {
 	LoadingStreamWAV::loadCount = loadCount;
 	input.open(source, std::ios::binary);
 	if (!input.is_open()) {
@@ -192,13 +192,13 @@ fau::LoadingStreamWAV::LoadingStreamWAV(const std::string source, const unsigned
 	input.read(chars, 4);//data
 	input.read(chars, 4);
 
-	const unsigned int num_bytes = bytesToEndian(chars, false);
+	const uint num_bytes = bytesToEndian(chars, false);
 	sampleCount = num_bytes / 2;
 
 	eof = false;
 }
 
-short* fau::LoadingStreamWAV::retrieveSamples(const unsigned int sample) {
+short* fau::LoadingStreamWAV::retrieveSamples(const uint sample) {
 	short* result;
 	const int byteCount = sample << (1 + (bitshift / 8));
 	input.seekg(44 + byteCount);
@@ -251,7 +251,7 @@ fau::LoadingStreamWAV::~LoadingStreamWAV() {
 	input.close();
 }
 
-fau::LoadingStreamOGG::LoadingStreamOGG(const std::string source, const unsigned int loadCount) {
+fau::LoadingStreamOGG::LoadingStreamOGG(const std::string& source, const uint loadCount) {
 	LoadingStreamOGG::loadCount = loadCount;
 	id = oggStream::openStream(source.data());
 	OggBuffer buf = oggStream::getInfo(id);
@@ -260,7 +260,7 @@ fau::LoadingStreamOGG::LoadingStreamOGG(const std::string source, const unsigned
 	channelCount = buf.channelCount;
 }
 
-short* fau::LoadingStreamOGG::retrieveSamples(const unsigned int sample) {
+short* fau::LoadingStreamOGG::retrieveSamples(const uint sample) {
 	i16* result = new i16[loadCount];
 	retrieve = oggStream::loadSamples(result, loadCount, sample, id, channelCount) * channelCount;
 	eof = false;

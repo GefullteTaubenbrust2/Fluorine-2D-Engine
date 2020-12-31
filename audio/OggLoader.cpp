@@ -1,7 +1,7 @@
 #pragma once
 #include "OggLoader.h"
 
-#include "stb_vorbis.c"
+#include "stb_vorbis.ipp"
 
 #include <iostream>
 
@@ -24,7 +24,7 @@ namespace fau {
 		result.sampleCount = stb_vorbis_stream_length_in_samples(vorbis) * result.channelCount;
 		result.samples = new i16[result.sampleCount];
 
-		unsigned int loaded = stb_vorbis_get_samples_short_interleaved(vorbis, result.channelCount, result.samples, result.sampleCount);
+		uint loaded = stb_vorbis_get_samples_short_interleaved(vorbis, result.channelCount, result.samples, result.sampleCount);
 
 		stb_vorbis_close(vorbis);
 
@@ -55,6 +55,7 @@ namespace fau {
 		}
 
 		OggBuffer getInfo(int id) {
+			if (!streams[id]) return OggBuffer();
 			stb_vorbis_info info = stb_vorbis_get_info(streams[id]);
 			OggBuffer result = OggBuffer();
 			result.samples = nullptr;
@@ -64,7 +65,8 @@ namespace fau {
 			return result;
 		}
 
-		int loadSamples(i16* samples, unsigned int size, unsigned int offset, unsigned int stream_id, unsigned int channelCount) {
+		int loadSamples(i16* samples, uint size, uint offset, uint stream_id, uint channelCount) {
+			if (!streams[stream_id]) return 0;
 			stb_vorbis_seek(streams[stream_id], offset / channelCount);
 			//std::cout << offset << '\n';
 			//stb_vorbis_seek_frame(streams[stream_id], 100000);

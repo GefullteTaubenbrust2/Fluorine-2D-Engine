@@ -50,6 +50,13 @@ namespace fau {
 
 		context = audio_al_call(alcCreateContext(device, NULL));
 		if (!alcMakeContextCurrent(context)) std::cerr << "An error occured trying to create a context\n";
+
+		float vectors[6] = {
+			0., 0., -1.,
+			0., 1., 0.
+		};
+
+		audio_al_call(alListenerfv(AL_ORIENTATION, vectors));
 	}
 
 	void dispose() {
@@ -63,26 +70,40 @@ namespace fau {
 		audio_al_call(alGetIntegerv(ALC_STEREO_SOURCES, &stereo_sources));
 	}
 
-	void allPassFilter(i16* samples, const unsigned int sampleCount, const unsigned int sampleRate) {
+	void allPassFilter(i16* samples, const uint sampleCount, const uint sampleRate) {
 		const int delay = 89.27 * sampleRate / 1000;
 		for (int i = 0; i < sampleCount; ++i) {
 			if (i - delay >= 0) {
-				samples[i] -= 0.131 * samples[i - delay];
+				samples[i] += 0.131 * samples[i - delay];
 			}
 			if (i - delay >= 1) {
-				samples[i] -= 0.131 * samples[i - delay + 20];
+				samples[i] += 0.131 * samples[i - delay + 20];
 			}
 		}
-	}
 
-	void combFilter(i16* samples, const unsigned int sampleCount, const unsigned int sampleRate, const float delay_millis, const float decay_f) {
-		const int delay = delay_millis * sampleRate / 1000;
-		for (int i = 0; i < sampleCount - delay; ++i) {
-			if (i + delay >= 0) samples[i + delay] += (short)(samples[i] * decay_f) >> 2;
+		i16 value = samples[0];
+		float max = 0.0f;
+
+		for (int i = 0; i < sampleCount; ++i) {
+			float v = std::abs((float)samples[i] / (float)(1 << 15));
+			if (v > max) max = v;
+		}
+
+		for (int i = 0; i < sampleCount; ++i) {
+			short curVal = samples[i];
+			value = ((value + curVal - value) / max);
+			samples[i] = value;
 		}
 	}
 
-	void reverberate(i16* samples, const unsigned int sampleCount, const unsigned int sampleRate, const unsigned int channelCount, const float delay_millis, const float decay_f) {
+	void combFilter(i16* samples, const uint sampleCount, const uint sampleRate, const float delay_millis, const float decay_f) {
+		const int delay = delay_millis * sampleRate / 1000;
+		for (int i = 0; i < sampleCount - delay; ++i) {
+			if (i + delay >= 0) samples[i + delay] += (short)(samples[i] * decay_f);
+		}
+	}
+
+	void reverberate(i16* samples, const uint sampleCount, const uint sampleRate, const uint channelCount, const float delay_millis, const float decay_f) {
 		for (int i = 0; i < sampleCount; ++i) {
 			samples[i] /= 2;
 		}
@@ -97,7 +118,7 @@ namespace fau {
 
 	void reverberate(Buffer& buffer, const float delay_millis, const float decay_f) {
 		const int delay = delay_millis * buffer.sampleRate / 1000;
-		const unsigned int sample_count = buffer.sampleCount * 10;
+		const uint sample_count = buffer.sampleCount * 10;
 		i16* data = new i16[sample_count];
 		std::copy(buffer.samples, buffer.samples + buffer.sampleCount, data);
 		for (int i = buffer.sampleCount; i < sample_count; ++i) data[i] = 0;

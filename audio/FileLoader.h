@@ -26,14 +26,14 @@ namespace fau {
 	/// WARNING: All members of this struct are read-only
 	/// </summary>
 	struct ThreadedStream {
-		unsigned int
+		uint
 			loadCount,
 			sampleCount,
 			sampleRate,
 			channelCount;
 		
 		/// <summary> The amount of samples retrieved on the last call of retrieveSamples() </summary>
-		unsigned int retrieve;
+		uint retrieve;
 
 		/// <summary> Is true if on the last call of retrieveSamples() there were samples that could not be loaded and will never be obtainable </summary>
 		bool eof = false;
@@ -43,7 +43,7 @@ namespace fau {
 		/// <returns> The retrieved samples as an array with a size equal to the retrieve member </returns>
 		/// \see retrieve
 		/// \see eof
-		virtual i16* retrieveSamples(const unsigned int sample) { return nullptr; }
+		virtual i16* retrieveSamples(const uint sample) { return nullptr; }
 	};
 
 	/// <summary> A struct for streaming from .wav files </summary>
@@ -59,14 +59,14 @@ namespace fau {
 		/// <summary> Construct a stream </summary>
 		/// <param name="source"> The path and name of the file </param>
 		/// <param name="loadCount"> The amount of the samples to be loaded at once </param>
-		LoadingStreamWAV(const std::string source, const unsigned int loadCount);
+		LoadingStreamWAV(const std::string& source, const uint loadCount);
 
 		/// <summary> Retrieve samples from the stream </summary>
 		/// <param name="sample"> The index of the first sample to be loaded </param>
 		/// <returns> The retrieved samples as an array with a size equal to the retrieve member </returns>
 		/// \see retrieve
 		/// \see eof
-		virtual i16* retrieveSamples(const unsigned int sample) override;
+		virtual i16* retrieveSamples(const uint sample) override;
 
 		/// <summary> The destructor </summary>
 		~LoadingStreamWAV();
@@ -82,14 +82,14 @@ namespace fau {
 		/// <summary> Construct a stream </summary>
 		/// <param name="source"> The path and name of the file </param>
 		/// <param name="loadCount"> The amount of the samples to be loaded at once </param>
-		LoadingStreamOGG(const std::string source, const unsigned int loadCount);
+		LoadingStreamOGG(const std::string& source, const uint loadCount);
 
 		/// <summary> Retrieve samples from the stream </summary>
 		/// <param name="sample"> The index of the first sample to be loaded </param>
 		/// <returns> The retrieved samples as an array with a size equal to the retrieve member </returns>
 		/// \see retrieve
 		/// \see eof
-		virtual i16* retrieveSamples(const unsigned int sample) override;
+		virtual i16* retrieveSamples(const uint sample) override;
 
 		/// <summary> The destructor </summary>
 		~LoadingStreamOGG();

@@ -15,10 +15,10 @@ namespace fau {
 	struct FourierBuffer {
 
 		/// <summary> exponent = log(size) / log(2)</summary>
-		unsigned int exponent;
+		uint exponent;
 
 		/// <summary> The amount of samples in the largest arrays</summary>
-		unsigned int size;
+		uint size;
 
 		/// <summary> The stored samples</summary>
 		flo::Complex<double>** even = nullptr, **odd = nullptr;
@@ -32,7 +32,7 @@ namespace fau {
 		/// WARNING: This constructor is expensive
 		/// </summary>
 		/// <param name="exponent"> The size will be 2^exponent</param>
-		FourierBuffer(const unsigned int exponent);
+		FourierBuffer(const uint exponent);
 
 		FourierBuffer() = default;
 
@@ -57,17 +57,17 @@ namespace fau {
 	/// </summary>
 	struct AudioVisualizer {
 	protected:
-		unsigned int* indexes = nullptr;
+		uint* indexes = nullptr;
 		flo::Complex<double>* input = nullptr;
 		FourierBuffer buf;
 		double* output = nullptr;
 
 	public:
-		unsigned int exponent;
-		unsigned int sampleCount;
+		uint exponent;
+		uint sampleCount;
 		float base;
-		unsigned int returned_size;
-		unsigned int peak_frequency;
+		uint returned_size;
+		uint peak_frequency;
 
 		/// <summary> The constructor
 		/// WARNING: The base must be greater than 1
@@ -75,7 +75,7 @@ namespace fau {
 		/// <param name="exponent"> The amount of samples to load at once will be 2^exponent</param>
 		/// <param name="base"> The higher the base, the less samples will be in the final output, but the more accurate their indexes will be</param>
 		/// <param name="peak_frequency"> The lowest frequency that will not be output</param>
-		AudioVisualizer(const unsigned int exponent, const float base, const unsigned int peak_frequency);
+		AudioVisualizer(const uint exponent, const float base, const uint peak_frequency);
 
 		AudioVisualizer() = default;
 
@@ -88,7 +88,7 @@ namespace fau {
 		/// <param name="channelCount"> The amount of channels</param>
 		/// <param name="playingOffset"> The first timestamp of the data to be read in seconds</param>
 		/// <returns> An internally handled pointer to the spectrum</returns>
-		double* getSpectrum(i16* samples, const unsigned int sampleRate, const unsigned int sampleCount, const unsigned int channelCount, const double playingOffset);
+		double* getSpectrum(i16* samples, const uint sampleRate, const uint sampleCount, const uint channelCount, const double playingOffset);
 
 		/// <summary> The destructor</summary>
 		void dispose();
@@ -99,7 +99,7 @@ namespace fau {
 	protected:
 		Buffer* buffer = nullptr;
 		FourierBuffer fbuf;
-		void(*filter)(flo::Complex<double>* samples, const unsigned int array_size, const unsigned int samplePos) = nullptr;
+		void(*filter)(flo::Complex<double>* samples, const uint array_size, const uint samplePos) = nullptr;
 		flo::Complex<double>* complex_buffer = nullptr;
 
 	public:
@@ -108,7 +108,7 @@ namespace fau {
 		/// <param name="buffer"> The buffer from which to stream</param>
 		/// <param name="filter"> A pointer to the function that will be used for processing the audio (parameters: samples - FFT data from the buffer with a size equal to the loadCount variable | array_size - The size of samples | samplePos - The first sample which is currently being read)</param>
 		/// <param name="exp The"> loadCount variable of the stream will be equal to 2^exp</param>
-		FilteredBufferStream(Buffer* buffer, void(*filter)(flo::Complex<double>* samples, const unsigned int array_size, const unsigned int samplePos), const unsigned int exp);
+		FilteredBufferStream(Buffer* buffer, void(*filter)(flo::Complex<double>* samples, const uint array_size, const uint samplePos), const uint exp);
 
 		FilteredBufferStream() = default;
 
@@ -117,7 +117,7 @@ namespace fau {
 		/// <summary> Get processed data from the stream (the FFT will be executed on the original data, the resulting data is filtered by the filter function, before being converted into a processable form by the IFFT)</summary>
 		/// <param name="sample"> The first sample to load from</param>
 		/// <returns> The processed data</returns>
-		virtual short* retrieveSamples(const unsigned int sample) override;
+		virtual short* retrieveSamples(const uint sample) override;
 
 		void dispose();
 	};

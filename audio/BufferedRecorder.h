@@ -12,8 +12,8 @@ namespace fau {
 	/// \see Buffer
 	struct BufferedRecorder {
 	protected:
-		unsigned int sampleRate;
-		unsigned int channelCount;
+		uint sampleRate;
+		uint channelCount;
 		std::thread* thread = nullptr;
 		std::vector<i16> data;
 		Buffer* buffer = nullptr;
@@ -35,7 +35,7 @@ namespace fau {
 		/// <param name="sampleRate"> The sampleRate to record at </param>
 		/// <param name="channelCount"> The number of channels to record (depending on the device used, unexpected behavior may occur) </param>
 		/// <param name="buffer"> The buffer to write to </param>
-		BufferedRecorder(const unsigned int sampleRate, const unsigned int channelCount, Buffer* buffer);
+		BufferedRecorder(const uint sampleRate, const uint channelCount, Buffer* buffer);
 
 		BufferedRecorder() = default;
 

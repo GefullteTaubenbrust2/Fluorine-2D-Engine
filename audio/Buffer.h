@@ -37,13 +37,13 @@ namespace fau {
 		/// <summary> WARNING: This variable is read-only </summary>
 		i16* samples = nullptr;
 		/// <summary> WARNING: This variable is read-only </summary>
-		unsigned int sampleRate = 0;
+		uint sampleRate = 0;
 		/// <summary> WARNING: This variable is read-only </summary>
 		unsigned long long sampleCount = 0;
 		/// <summary> WARNING: This variable is read-only </summary>
-		unsigned int channelCount = 0;
+		uint channelCount = 0;
 		/// <summary> WARNING: This variable is read-only </summary>
-		unsigned int alBuffer;
+		uint alBuffer;
 		/// <summary> WARNING: This variable is read-only </summary>
 		ALenum format;
 		
@@ -68,14 +68,14 @@ namespace fau {
 		/// <param name="sampleCount"> The amount of samples</param>
 		/// <param name="channelCount"> The amount of channels</param>
 		/// <param name="sampleRate"> The rate at which samples are played, divided by channelCount</param>
-		Buffer(const std::vector<glm::vec2> harmonics, const unsigned int sampleRate, const unsigned long long sampleCount, const unsigned int channelCount);
+		Buffer(const std::vector<glm::vec2>& harmonics, const uint sampleRate, const unsigned long long sampleCount, const uint channelCount);
 
 		/// <summary>  
 		/// Load a buffer from a file
 		/// </summary>
 		/// <param name="filename"> The path and name of the file</param>
 		/// <param name="f"> The format of the file</param>
-		Buffer(const std::string filename, const FileFormat f);
+		Buffer(const std::string& filename, const FileFormat f);
 
 		/// <summary>  
 		/// Create a buffer from scratch
@@ -85,7 +85,7 @@ namespace fau {
 		/// <param name="sampleCount"> The amount of samples</param>
 		/// <param name="channelCount"> The amount of channels</param>
 		/// <param name="sampleRate"> The rate at which samples are played, divided by channelCount</param>
-		Buffer(i16* samples, const unsigned int sampleCount, const unsigned int sampleRate, const unsigned int channelCount);
+		Buffer(i16* samples, const uint sampleCount, const uint sampleRate, const uint channelCount);
 
 		void operator=(const Buffer buf);
 

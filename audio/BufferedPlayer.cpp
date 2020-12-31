@@ -78,7 +78,7 @@ namespace fau {
 		return pitch;
 	}
 
-	void BufferedPlayer::setPosition(const glm::vec3 pos) {
+	void BufferedPlayer::setPosition(const glm::vec3& pos) {
 		audio_al_call(alSource3f(source, AL_POSITION, pos.x, pos.y, pos.z));
 	}
 
@@ -88,7 +88,7 @@ namespace fau {
 		return vec;
 	}
 
-	void BufferedPlayer::setVelocity(const glm::vec3 pos) {
+	void BufferedPlayer::setVelocity(const glm::vec3& pos) {
 		audio_al_call(alSource3f(source, AL_VELOCITY, pos.x, pos.y, pos.z));
 	}
 

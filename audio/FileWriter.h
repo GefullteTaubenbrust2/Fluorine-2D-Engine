@@ -7,5 +7,5 @@ namespace fau {
 	/// </summary>
 	/// <param name="filename"> The path and name of the file </param>
 	/// <param name="buffer A"> pointer the buffer to be written from </param>
-	void outputWAVFile(const std::string filename, Buffer* buffer);
+	void outputWAVFile(const std::string& filename, Buffer* buffer);
 }

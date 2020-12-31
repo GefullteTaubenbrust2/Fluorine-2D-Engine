@@ -3,7 +3,7 @@
 #include "AudioSetup.h"
 
 namespace fau {
-	ThreadedRecorder::ThreadedRecorder(const unsigned int sampleRate, const unsigned int channelCount, const unsigned int loadCount) {
+	ThreadedRecorder::ThreadedRecorder(const uint sampleRate, const uint channelCount, const uint loadCount) {
 		ThreadedRecorder::sampleRate = sampleRate;
 		ThreadedRecorder::channelCount = channelCount;
 		ThreadedRecorder::loadCount = loadCount;
@@ -68,7 +68,7 @@ namespace fau {
 		recording = true;
 		data_chunks.clear();
 		if (device >= 0) {
-			audio_al_call(device = alcCaptureOpenDevice(input_devices[device_index].data(), sampleRate, format, sampleRate));
+			audio_al_call(device = alcCaptureOpenDevice(input_devices[device_index < 0 ? 0 : device_index].data(), sampleRate, format, sampleRate));
 		}
 		else {
 			audio_al_call(device = alcCaptureOpenDevice(NULL, sampleRate, format, sampleRate));
@@ -88,10 +88,10 @@ namespace fau {
 		audio_al_call(alcCaptureStop(device));
 	}
 
-	i16* ThreadedRecorder::retrieveSamples(const unsigned int sample) {
+	i16* ThreadedRecorder::retrieveSamples(const uint sample) {
 		i16* output = new i16[loadCount];
 		eof = false;
-		const unsigned int mod = sample % loadCount;
+		const uint mod = sample % loadCount;
 		if (mod) {
 			const int index = sample / loadCount;
 			if (index < (int)data_chunks.size() - 1) {

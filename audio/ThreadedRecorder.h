@@ -26,7 +26,7 @@ namespace fau {
 		/// <param name="sampleRate"> The sample rate</param>
 		/// <param name="channelCount"> The channel count</param>
 		/// <param name="loadCount"> The amount of samples to stream at once</param>
-		ThreadedRecorder(const unsigned int sampleRate, const unsigned int channelCount, const unsigned int loadCount);
+		ThreadedRecorder(const uint sampleRate, const uint channelCount, const uint loadCount);
 
 		ThreadedRecorder() = default;
 
@@ -45,7 +45,7 @@ namespace fau {
 		/// <returns> The retrieved samples as an array with a size equal to the retrieve member</returns>
 		/// \see retrieve
 		/// \see eof
-		virtual i16* retrieveSamples(const unsigned int sample) override;
+		virtual i16* retrieveSamples(const uint sample) override;
 
 		/// <summary> The destructor</summary>
 		void dispose();

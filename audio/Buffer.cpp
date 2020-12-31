@@ -3,7 +3,7 @@
 #include "FileLoader.h"
 
 namespace fau {
-	Buffer::Buffer(const std::vector<glm::vec2> harmonics, const unsigned int sampleRate, const unsigned long long sampleCount, const unsigned int channelCount) :
+	Buffer::Buffer(const std::vector<glm::vec2>& harmonics, const uint sampleRate, const unsigned long long sampleCount, const uint channelCount) :
 		sampleRate(sampleRate), sampleCount(sampleCount), channelCount(channelCount) {
 		samples = new short[sampleCount];
 		const float vol = (1 << 14) / harmonics.size();
@@ -20,7 +20,7 @@ namespace fau {
 		init();
 	}
 
-	Buffer::Buffer(const std::string filename, const FileFormat f) {
+	Buffer::Buffer(const std::string& filename, const FileFormat f) {
 		samples = new short[1];
 		switch (f) {
 		case(wav):
@@ -41,7 +41,7 @@ namespace fau {
 		std::thread thread = std::thread(&Buffer::loadFromBuffer, this, stream);
 	}
 
-	Buffer::Buffer(i16* samples, const unsigned int sampleCount, const unsigned int sampleRate, const unsigned int channelCount) : 
+	Buffer::Buffer(i16* samples, const uint sampleCount, const uint sampleRate, const uint channelCount) : 
 	sampleCount(sampleCount), channelCount(channelCount), sampleRate(sampleRate) {
 		Buffer::samples = new i16[sampleCount];
 		std::copy(samples, samples + sampleCount, Buffer::samples);
@@ -70,12 +70,12 @@ namespace fau {
 
 	void Buffer::loadFromBuffer(ThreadedStream* stream) {
 		std::vector<short*> collected_data;
-		std::vector<unsigned int> lengths;
-		unsigned int sample = 0;
+		std::vector<uint> lengths;
+		uint sample = 0;
 		int index = 0;
 		while (!stream->eof) {
 			short* data = stream->retrieveSamples(sample);
-			const unsigned int size = stream->retrieve;
+			const uint size = stream->retrieve;
 			if (size) {
 				collected_data.push_back(new short[stream->loadCount]);
 				lengths.push_back(size);
@@ -91,9 +91,9 @@ namespace fau {
 			sampleCount += lengths[i];
 		}
 		samples = new short[sampleCount];
-		unsigned int pre = 0;
+		uint pre = 0;
 		for (int i = 0; i < collected_data.size(); ++i) {
-			const unsigned int length = lengths[i];
+			const uint length = lengths[i];
 			std::copy(collected_data[i], collected_data[i] + length, samples + pre);
 			delete[] collected_data[i];
 			pre += length;

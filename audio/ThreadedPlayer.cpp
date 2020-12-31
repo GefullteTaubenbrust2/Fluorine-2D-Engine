@@ -65,7 +65,7 @@ namespace fau {
 						audio_al_call(alDeleteBuffers((ALuint)1, &buffers[1]));
 						audio_al_call(alGenBuffers((ALuint)1, &buffers[1]));
 						short* samples = stream->retrieveSamples((bufferid) * stream->loadCount);
-						const unsigned int size = stream->retrieve;
+						const uint size = stream->retrieve;
 						if (stream->eof) {
 							if (loop) bufferid = -1;
 							else {
@@ -125,10 +125,12 @@ namespace fau {
 		audio_al_call(alGenBuffers((ALsizei)2, &buffers[0]));
 
 		short* samples = stream->retrieveSamples(req_id * stream->loadCount);
+		if (!samples) return;
 		audio_al_call(alBufferData(buffers[0], (stream->channelCount == 2) ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, samples, stream->loadCount * 2, stream->sampleRate));
 		delete[] samples;
 		samples = stream->retrieveSamples(stream->loadCount * (req_id + 1));
 		audio_al_call(alBufferData(buffers[1], stream->channelCount == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, samples, stream->loadCount * 2, stream->sampleRate));
+		if (!samples) return;
 		delete[] samples;
 
 		audio_al_call(alSourceQueueBuffers(source, (ALuint)2, &buffers[0]));
@@ -227,7 +229,7 @@ namespace fau {
 		}
 	}
 
-	void ThreadedPlayer::setPosition(const glm::vec3 pos) {
+	void ThreadedPlayer::setPosition(const glm::vec3& pos) {
 		audio_al_call(alSource3f(source, AL_POSITION, pos.x, pos.y, pos.z));
 	}
 
@@ -237,7 +239,7 @@ namespace fau {
 		return vec;
 	}
 
-	void ThreadedPlayer::setVelocity(const glm::vec3 pos) {
+	void ThreadedPlayer::setVelocity(const glm::vec3& pos) {
 		audio_al_call(alSource3f(source, AL_VELOCITY, pos.x, pos.y, pos.z));
 	}
 

@@ -27,7 +27,7 @@ namespace fau {
 		bool buffer0 = true;
 		ALuint buffers[2];
 		bool req_pause = false, req_stop = false;
-		unsigned int req_id = 0;
+		uint req_id = 0;
 		ALfloat req_time = 0;
 		bool q0, q1;
 
@@ -48,9 +48,6 @@ namespace fau {
 		ThreadedPlayer(ThreadedStream* stream);
 
 		ThreadedPlayer() = default;
-
-		//TODO: FUCKING FIX THIS
-		//void operator=(ThreadedPlayer& tp);
 
 		/// <summary> Continues the player if paused and resets the player if stopped or playing</summary>
 		void play();
@@ -97,7 +94,7 @@ namespace fau {
 
 		/// <summary> Set the position of the source relative to the listener</summary>
 		/// <param name="pos"> The position as a 3D vector</param>
-		void setPosition(const glm::vec3 pos);
+		void setPosition(const glm::vec3& pos);
 
 		/// <summary> Get the position of the source relative to the listener</summary>
 		/// <returns> The position as a 3D vector</returns>
@@ -105,7 +102,7 @@ namespace fau {
 
 		/// <summary> Set the velocity of the source relative to the listener</summary>
 		/// <param name="pos"> The velocity as a 3D vector</param>
-		void setVelocity(const glm::vec3 pos);
+		void setVelocity(const glm::vec3& pos);
 
 		/// <summary> Get the velocity of the source relative to the listener</summary>
 		/// <returns> The velocity as a 3D vector</returns>
