@@ -5,13 +5,13 @@
 #include <fstream>
 
 namespace fgr {
-	bool ComputeShader::loadFromFile(const std::string& path, const unsigned int shader_storage_object_count, glm::uvec3 global_invocation_size, std::vector<std::string> uniforms) {
+	bool ComputeShader::loadFromFile(const std::string& path, const uint shader_storage_object_count, glm::uvec3 global_invocation_size, const std::vector<std::string>& uniforms) {
 		graphics_check_external();
 
 		std::ifstream stream;
 		stream.open(path, std::ios::ate | std::ios::binary);
 		stream.seekg(0, std::ios::end);
-		unsigned int size = stream.tellg();
+		uint size = stream.tellg();
 		stream.seekg(0, std::ios::beg);
 		char* compute_src = new char[size + 1];
 		stream.read(compute_src, size);
@@ -44,11 +44,11 @@ namespace fgr {
 		glDeleteShader(compute_shader);
 
 		ssbo_count = shader_storage_object_count;
-		shader_storage_objects = new unsigned int[ssbo_count];
+		shader_storage_objects = new uint[ssbo_count];
 		glGenBuffers(ssbo_count, shader_storage_objects);
 
 		uniform_count = uniforms.size();
-		uniform_locations = new unsigned int[uniform_count];
+		uniform_locations = new uint[uniform_count];
 		for (int i = 0; i < uniform_count; ++i) {
 			uniform_locations[i] = glGetUniformLocation(shader_program, uniforms[i].data());
 		}

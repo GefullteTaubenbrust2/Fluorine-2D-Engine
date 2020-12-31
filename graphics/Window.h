@@ -16,11 +16,18 @@
 namespace fgr {
 	struct TextureHandle;
 
+	struct RenderTarget;
+
 	namespace window {
         ///<summary>
         ///The current window dimensions.
         ///</summary>
 		extern int width, height;
+
+		///<summary>
+		/// The window's RenderTarget.
+		///</summary>
+		extern RenderTarget framebuffer;
 
         ///<summary>
         ///Open a new window. There can only be one window.
@@ -71,6 +78,9 @@ namespace fgr {
         ///</summary>
 		bool isClosing();
 
+		///<summary>
+		/// Irreversibly hide the cursor.
+		///</summary>
 		void hideCursor();
 
         ///<summary>
@@ -84,16 +94,45 @@ namespace fgr {
         ///</summary>
 		void flush();
 
-		void setIcon(std::vector<TextureHandle> textures);
+		///<summary>
+		/// Set the window icon.
+		///</summary>
+		///<param name="textures">A selection of textures that can be selected depending on the ideal size.</param>
+		void setIcon(const std::vector<TextureHandle>& textures);
 
+		///<summary>
+		/// Hide or show the console.
+		///</summary>
+		///<param name="visible">Should the console be shown?</param>
 		void setConsoleVisible(bool visible);
 
+		///<summary>
+		/// Bring the window into or out of fullscreen mode.
+		///</summary>
+		///<param name="fullscreen">Enable or disable fullscreen mode.</param>
 		void setFullscreen(bool fullscreen);
 
+		///<summary>
+		/// Is the window fullscreened?
+		///</summary>
+		///<returns>Is the window fullscreened?</returns>
 		bool isFullscreened();
 
+		///<summary>
+		/// Is the window in focus?
+		///</summary>
+		///<returns>Is the window in focus?</returns>
 		bool hasFocus();
 
+		///<summary>
+		/// Take a screenshot of the window's contents.
+		///</summary>
+		///<param name="path">The path of the image file to write to.</param>
+		void screenshot(const std::string& path);
+
+		///<summary>
+		/// Request to close the window.
+		///</summary>
 		void close();
 
         ///<summary>

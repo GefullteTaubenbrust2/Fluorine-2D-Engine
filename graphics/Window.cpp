@@ -14,9 +14,11 @@
 #include <Windows.h>
 #endif
 
-//#include "../ui/Panel.h"
-
 #include "GErrorHandler.h"
+
+#include "FrameBuffer.h"
+
+#include "Texture.h"
 
 namespace flo {
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -24,12 +26,12 @@ namespace flo {
 	void update_input(GLFWwindow* window);
 
 	namespace editor {
-		void character_callback(GLFWwindow* window, unsigned int codepoint);
+		void character_callback(GLFWwindow* window, uint codepoint);
 	}
-}
 
-namespace ui {
-	void init_ui_defaults();
+	namespace editor {
+		void init_textinput();
+	}
 }
 
 #undef max
@@ -41,11 +43,13 @@ namespace fgr {
 
 	namespace window {
 		int width, height;
+		RenderTarget framebuffer;
+
 		glm::ivec2 previous_dimensions;
 		int default_width, default_height;
 
-		unsigned int framerate = 10;
-		unsigned int frames = 0;
+		uint framerate = 10;
+		uint frames = 0;
 		flo::Stopclock timer;
 		float max_tolerance = 0.03;
 		GLFWwindow* glfw_window;
@@ -102,7 +106,7 @@ namespace fgr {
 			}
 
 			graphics_check_external();
-
+			
 			glEnable(GL_MULTISAMPLE);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -111,6 +115,7 @@ namespace fgr {
 			glfwSetCharCallback(window, flo::editor::character_callback);
 			glfwSetScrollCallback(window, flo::scroll_callback);
 			glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+			flo::editor::init_textinput();
 
 			timer.reset();
 
@@ -122,6 +127,9 @@ namespace fgr {
 			framebuffer_size_callback(window, width, height);
 
 			window_created = true;
+
+			framebuffer.bounds = glm::ivec4(0, 0, width, height);
+			framebuffer.bind();
 
 			graphics_check_error();
 		}
@@ -141,7 +149,7 @@ namespace fgr {
 		void waitForFrame() {
 			++frames;
 
-			unsigned int frames_required = (timer.stop().asSeconds() * framerate);
+			uint frames_required = (timer.stop().asSeconds() * framerate);
 
 			if (std::abs((int)frames_required - (int)frames) > (framerate * 0.1 + 1)) {
 				timer.reset();
@@ -175,6 +183,7 @@ namespace fgr {
 			delta_time = now - last;
 			last = now;
 			if (delta_time > max_tolerance) delta_time = max_tolerance;
+			framebuffer.bounds = glm::ivec4(0, 0, width, height);
 		}
 
 		void hideCursor() {
@@ -192,7 +201,7 @@ namespace fgr {
 			graphics_check_error();
 		}
 
-		void setIcon(std::vector<TextureHandle> textures) {
+		void setIcon(const std::vector<TextureHandle>& textures) {
 			std::vector<GLFWimage> images;
 			for (int i = 0; i < textures.size(); ++i) {
 				GLFWimage icon;
@@ -214,6 +223,21 @@ namespace fgr {
 			return glfwGetWindowAttrib(glfw_window, GLFW_FOCUSED);
 		}
 
+		void screenshot(const std::string& filename) {
+			u8* pixels = new u8[width * height * 3];
+
+			glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+			TextureHandle tex;
+			tex.width = width;
+			tex.height = height;
+			tex.data = pixels;
+			tex.bytes_per_pixel = 3;
+			tex.saveFile(filename);
+			
+			delete[] pixels;
+		}
+
 		void close() {
 			glfwSetWindowShouldClose(glfw_window, 1);
 		}
@@ -229,7 +253,7 @@ namespace fgr {
 
 				const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-				glfwSetWindowMonitor(glfw_window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, 0);
+				glfwSetWindowMonitor(glfw_window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, mode->refreshRate);
 			}
 			else {
 				const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());

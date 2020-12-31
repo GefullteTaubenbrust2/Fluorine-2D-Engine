@@ -7,9 +7,9 @@
 #include "GErrorHandler.h"
 
 namespace fgr {
-	unsigned int FrameBuffer::bound = 0;
+	RenderTarget RenderTarget::bound;
 
-	void FrameBuffer::init(const int width, const int height, const unsigned int fmt, const unsigned int wrap, const unsigned int filter) {
+	void FrameBuffer::init(const int width, const int height, const uint fmt, const uint wrap, const uint filter) {
 		graphics_check_external();
 
 		tex_width = width;
@@ -41,6 +41,9 @@ namespace fgr {
 
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		target.id = fbo;
+		target.bounds = glm::ivec4(0, 0, width, height);
 
 		graphics_check_error();
 	}
@@ -78,12 +81,24 @@ namespace fgr {
 			glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			target.id = fbo;
+			target.bounds = glm::ivec4(0, 0, width, height);
 		}
 
 		tex_width = width;
 		tex_height = height;
 
 		graphics_check_error();
+	}
+
+	void FrameBuffer::resolve(FrameBuffer& ofbo) {
+		graphics_check_external();
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, ofbo.fbo);
+		glBlitFramebuffer(0, 0, tex_width, tex_height, 0, 0, ofbo.tex_width, ofbo.tex_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		unbind();
 	}
 
 	void FrameBuffer::bindContent(const TextureUnit unit) {
@@ -98,9 +113,7 @@ namespace fgr {
 	void FrameBuffer::bind() {
 		graphics_check_external();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		glViewport(0, 0, tex_width, tex_height);
-		FrameBuffer::bound = fbo;
+		target.bind();
 
 		graphics_check_error();
 	}
@@ -108,9 +121,7 @@ namespace fgr {
 	void FrameBuffer::unbind() {
 		graphics_check_external();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, window::width, window::height);
-		FrameBuffer::bound = 0;
+		target.unbind();
 
 		graphics_check_error();
 	}
@@ -128,16 +139,17 @@ namespace fgr {
 	void FrameBuffer::clear(const glm::vec4& color) {
 		graphics_check_external();
 
+		RenderTarget t = RenderTarget::bound;
 		bind();
 		glClearColor(color.r, color.g, color.b, color.a);
 		glClearDepth(1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		unbind();
+		t.bind();
 
 		graphics_check_error();
 	}
 
-	void FrameBufferMS::init(const int width, const int height, const unsigned int format) {
+	void FrameBufferMS::init(const int width, const int height, const uint format) {
 		graphics_check_external();
 
 		tex_width = width;
@@ -166,16 +178,18 @@ namespace fgr {
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		target.id = fbo;
+		target.bounds = glm::ivec4(0, 0, width, height);
+
 		graphics_check_error();
 	}
 
-	void FrameBufferMS::resolve(const unsigned int output_fbo) {
+	void FrameBufferMS::resolve(const uint output_fbo) {
 		graphics_check_external();
 
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, output_fbo);
 		glBlitFramebuffer(0, 0, tex_width, tex_height, 0, 0, tex_width, tex_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		//glBlitFramebuffer(0, 0, tex_width, tex_height, 0, 0, tex_width, tex_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 		graphics_check_error();
 	}
@@ -209,6 +223,9 @@ namespace fgr {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depth_tex, 0);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			target.id = fbo;
+			target.bounds = glm::ivec4(0, 0, width, height);
 		}
 
 		tex_width = width;
@@ -220,9 +237,7 @@ namespace fgr {
 	void FrameBufferMS::bind() {
 		graphics_check_external();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		glViewport(0, 0, tex_width, tex_height);
-		FrameBuffer::bound = fbo;
+		target.bind();
 
 		graphics_check_error();
 	}
@@ -230,9 +245,7 @@ namespace fgr {
 	void FrameBufferMS::unbind() {
 		graphics_check_external();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, window::width, window::height);
-		FrameBuffer::bound = 0;
+		target.unbind();
 
 		graphics_check_error();
 	}
@@ -244,18 +257,35 @@ namespace fgr {
 		if (fbo) glDeleteFramebuffers(1, &fbo);
 		if (depth_tex) glDeleteTextures(1, &depth_tex);
 
+		target = RenderTarget();
+
 		graphics_check_error();
 	}
 
 	void FrameBufferMS::clear(const glm::vec4& color) {
 		graphics_check_external();
 
+		RenderTarget t = RenderTarget::bound;
 		bind();
 		glClearColor(color.r, color.g, color.b, color.a);
 		glClearDepth(1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		unbind();
+		t.bind();
 
+		graphics_check_error();
+	}
+
+	void RenderTarget::bind() {
+		graphics_check_external();
+		RenderTarget::bound = *this;
+		glBindFramebuffer(GL_FRAMEBUFFER, id);
+		glViewport(bounds.x, bounds.y, bounds.z - bounds.x, bounds.w - bounds.y);
+		graphics_check_error();
+	}
+
+	void RenderTarget::unbind() {
+		graphics_check_external();
+		window::framebuffer.bind();
 		graphics_check_error();
 	}
 }

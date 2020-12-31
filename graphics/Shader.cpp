@@ -5,7 +5,7 @@
 #include "GErrorHandler.h"
 
 namespace fgr {
-	Shader Shader::basic, Shader::basic_instanced, Shader::line, Shader::line_instanced, Shader::textured, Shader::textured_instanced, Shader::sprites_instanced, Shader::sprites_instanced_depth;
+	Shader Shader::basic, Shader::basic_instanced, Shader::line, Shader::line_instanced, Shader::textured, Shader::textured_instanced, Shader::sprites_instanced, Shader::sprites_instanced_depth, Shader::lit_3d;
 
 	void init_shader_defaults() {
 		Shader::basic.loadFromFile("src/shaders/basic.vert", "src/shaders/basic.frag", std::vector<std::string>{});
@@ -16,15 +16,17 @@ namespace fgr {
 		Shader::textured_instanced.loadFromFile("src/shaders/instanced/textured.vert", "src/shaders/textured.frag", std::vector<std::string>{"texture"});
 		Shader::sprites_instanced.loadFromFile("src/shaders/instanced/sprite.vert", "src/shaders/instanced/sprite.frag", std::vector<std::string>{"textures"});
 		Shader::sprites_instanced_depth.loadFromFile("src/shaders/instanced/sprite.vert", "src/shaders/instanced/depthsprite.frag", std::vector<std::string>{"textures"});
+		Shader::lit_3d.loadFromFile("src/shaders/3D/basic.vert", "src/shaders/3D/basic.frag", std::vector<std::string>{"image", "sun_direction", "sun_color", "ambient_color"});
+
 	}
 
-	bool Shader::loadFromFile(const std::string& vertex_path, const std::string& fragment_path, std::vector<std::string> uniforms) {
+	bool Shader::loadFromFile(const std::string& vertex_path, const std::string& fragment_path, const std::vector<std::string>& uniforms) {
 		graphics_check_external();
 
 		std::ifstream stream;
 		stream.open(vertex_path, std::ios::ate | std::ios::binary);
 		stream.seekg(0, std::ios::end);
-		unsigned int size = stream.tellg();
+		uint size = stream.tellg();
 		stream.seekg(0, std::ios::beg);
 		char* vertex_src = new char[size + 1];
 		stream.read(vertex_src, size);
@@ -92,13 +94,13 @@ namespace fgr {
 		return 0;
 	}
 
-	bool Shader::loadFromFile(const std::string& vertex_path, const std::string& fragment_path, const std::string& geometry_path, std::vector<std::string> uniforms) {
+	bool Shader::loadFromFile(const std::string& vertex_path, const std::string& fragment_path, const std::string& geometry_path, const std::vector<std::string>& uniforms) {
 		graphics_check_external();
 
 		std::ifstream stream;
 		stream.open(vertex_path, std::ios::ate | std::ios::binary);
 		stream.seekg(0, std::ios::end);
-		unsigned int size = stream.tellg();
+		uint size = stream.tellg();
 		stream.seekg(0, std::ios::beg);
 		char* vertex_src = new char[size + 1];
 		stream.read(vertex_src, size);

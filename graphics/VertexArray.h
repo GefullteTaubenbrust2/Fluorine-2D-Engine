@@ -10,6 +10,8 @@
 
 #include "Shader.h"
 
+#include "../logic/Types.h"
+
 #include <vector>
 
 namespace fgr {
@@ -65,17 +67,17 @@ namespace fgr {
         ///<summary>
         ///The amount of vertices stored in the array.
         ///</summary>
-		unsigned int vertices_size = 0;
+		uint vertices_size = 0;
 
         ///<summary>
         ///The associated OpenGL objects. WARNING: read-only!
         ///</summary>
-		unsigned int VAO = 0, VBO = 0;
+		uint VAO = 0, VBO = 0;
         
         ///<summary>
         ///The amount of vertices allocated in graphics memory. WARNING: read-only!
         ///</summary>
-		unsigned int vertices_allocated = 0;
+		uint vertices_allocated = 0;
 
         ///<summary>
         ///The transformations of the array. WARNING: read-only!
@@ -99,7 +101,7 @@ namespace fgr {
         ///</summary>
         ///<param name="shader">The shader to be used.</param>
         ///<param name="mode">The render mode to draw with.</param>
-		void draw(const Shader& shader, const unsigned int mode = GL_TRIANGLES);
+		void draw(const Shader& shader, const uint mode = GL_TRIANGLES);
 
         ///<summary>
         ///Update the vertices for drawing.
@@ -110,20 +112,20 @@ namespace fgr {
         ///Truncate the array or allocate new vertices. "update()" does not need to be called.
         ///</summary>
         ///<param name="vertices_size">The desired new size.</param>
-		void resize(const unsigned int vertices_size);
+		void resize(const uint vertices_size);
 
         ///<summary>
         ///Set a new set of vertices. "update()" does not need to be called.
         ///</summary>
         ///<param name="vertices">The vertices to be used.</param>
         ///<param name="size">The amount of vertices from the input array to be copied into the array.</param>
-		void setVertices(Vertex* vertices, const unsigned int size);
+		void setVertices(Vertex* vertices, const uint size);
 
         ///<summary>
         ///Append a vertex to the preexisting ones. "update()" does not need to be called.
         ///</summary>
         ///<param name="vertex">The vertex to be added.</param>
-		void append(Vertex vertex);
+		void append(const Vertex& vertex);
 
         ///<summary>
         ///Set the transformations of the array.
@@ -149,12 +151,12 @@ namespace fgr {
         ///<summary>
         ///The VBO associated with the array. WARNING: read-only!
         ///</summary>
-		unsigned int VBO = 0;
+		uint VBO = 0;
         
         ///<summary>
         ///The amount of instances allocated in graphics memory. WARNING: read-only!
         ///</summary>
-		unsigned int instances_allocted = 0;
+		uint instances_allocted = 0;
 
         ///<summary>
         ///The vertex array to be instanced. May be modified freely.
@@ -178,7 +180,7 @@ namespace fgr {
         ///</summary>
         ///<param name="shader">The shader to be used.</param>
         ///<param name="mode">The render mode to be drawn with.</param>
-		void draw(const Shader& shader, const unsigned int mode = GL_TRIANGLES);
+		void draw(const Shader& shader, const uint mode = GL_TRIANGLES);
 
         ///<summary>
         ///Update the graphics memory for drawing after changes have been made to the instances.

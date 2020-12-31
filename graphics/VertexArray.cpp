@@ -38,7 +38,7 @@ namespace fgr {
 		graphics_check_error();
 	}
 
-	void VertexArray::draw(const Shader& shader, const unsigned int mode) {
+	void VertexArray::draw(const Shader& shader, const uint mode) {
 		graphics_check_external();
 
 		glBindVertexArray(VAO);
@@ -80,7 +80,7 @@ namespace fgr {
 		graphics_check_error();
 	}
 
-	void VertexArray::resize(const unsigned int vertices_size) {
+	void VertexArray::resize(const uint vertices_size) {
 		Vertex* next = new Vertex[vertices_size];
 		int copied = VertexArray::vertices_size;
 		if (copied > vertices_size) copied = vertices_size;
@@ -92,7 +92,7 @@ namespace fgr {
 		update();
 	}
 
-	void VertexArray::setVertices(Vertex* vertices, const unsigned int size) {
+	void VertexArray::setVertices(Vertex* vertices, const uint size) {
 		if (size != vertices_size) {
 			if (VertexArray::vertices) delete[] VertexArray::vertices;
 			VertexArray::vertices = new Vertex[size];
@@ -105,7 +105,7 @@ namespace fgr {
 		update();
 	}
 
-	void VertexArray::append(Vertex vertex) {
+	void VertexArray::append(const Vertex& vertex) {
 		Vertex* next = new Vertex[vertices_size + 1];
 		if (vertices) {
 			delete[] vertices;
@@ -178,7 +178,7 @@ namespace fgr {
 		graphics_check_error();
 	}
 
-	void InstanceArray::draw(const Shader& shader, const unsigned int mode) {
+	void InstanceArray::draw(const Shader& shader, const uint mode) {
 		graphics_check_external();
 
 		glBindVertexArray(va.VAO);
@@ -186,7 +186,7 @@ namespace fgr {
 		const glm::mat3 trans = va.transform;
 		glUniformMatrix3fv(shader.transformations_uniform, 1, false, glm::value_ptr(va.transform));
 
-		glDrawArraysInstanced(mode, 0, va.vertices_size, glm::min((unsigned int)instances.size(), instances_allocted));
+		glDrawArraysInstanced(mode, 0, va.vertices_size, glm::min((uint)instances.size(), instances_allocted));
 
 		glBindVertexArray(0);
 

@@ -29,18 +29,19 @@ namespace fgr {
     ///<returns>The success, false being a success.</returns>
 	struct SpriteArray {
 		private:
-		unsigned int VBO = 0;
-		unsigned int instances_allocted = 0;
-		unsigned int batch_end = 0, batch_start = 0;
+		uint VBO = 0;
+		uint instances_allocted = 0;
+		uint batch_start = 0;
+		bool update_required, push_required;
 		VertexArray rectangle;
 
 		public:
         ///<summary>
         ///The array_texture to be used, or more specifically, its ID.
         ///</summary>
-		unsigned int texture_array;
+		uint texture_array;
 
-		unsigned int texture_type = GL_TEXTURE_2D_ARRAY;
+		uint texture_type = GL_TEXTURE_2D_ARRAY;
         
         ///<summary>
         ///Should be true when the sprites are often changed, false otherwhise.
@@ -58,6 +59,26 @@ namespace fgr {
         ///Must be called prior to rendering.
         ///</summary>
 		void init();
+
+		///<summary>Start a new batch.</summary>
+		void resetBatch();
+
+		///<summary>
+		///Push a sprite to the current batch.
+		///When this is not enforced and an update is not requested, this will render the sprite in question as in the previous batch.
+		///</summary>
+		void pushSprite(const Sprite& sprite, bool enforced);
+
+		///<summary>
+		///Push multiple sprites to the current batch.
+		///When this is not enforced and an update is not requested, this will render the sprites in question as in the previous batch.
+		///</summary>
+		void pushSprites(const std::vector<Sprite>& sprites, bool enforced);
+
+		///<summary>
+		///This will enforce all upcoming sprites pushed in the batch to be updated.
+		///</summary>
+		void requestUpdate();
         
         ///<summary>
         ///Set the sprite array. Calling "update()" afterwards is not neccessary.
@@ -75,6 +96,9 @@ namespace fgr {
         ///</summary>
         ///<param name="shader">The shader to be used.</param>
 		void draw(Shader& shader, int count = -1);
+
+		///<summary>Draw the batch.</summary>
+		void drawBatch(Shader& shader);
 
         ///<summary>
         ///Set a transformation matrix for the entire array.
@@ -100,7 +124,9 @@ namespace fgr {
 
 		void init();
 
-		void pushSprite(Sprite& sprite);
+		void pushSprite(const Sprite& sprite);
+
+		void pushSprites(const std::vector<Sprite>& sprites);
 
 		void dispose();
 	};

@@ -11,6 +11,8 @@
 
 #include <vector>
 
+#include "../logic/Types.h"
+
 namespace fgr {
     ///<summary>
     ///A struct for creating and handling OpenGL compute shaders.
@@ -21,7 +23,7 @@ namespace fgr {
         ///IDs of the program and the shader itself, respectively. 
         ///WARNING read-only!
         ///</summary>
-		unsigned int shader_program, compute_shader;
+		uint shader_program, compute_shader;
         
         ///<summary>
         ///Has the shader yet been loaded? 
@@ -32,12 +34,12 @@ namespace fgr {
         ///<summary>
         ///WARNING read-only!
         ///</summary>
-		unsigned int *shader_storage_objects, *uniform_locations;
+		uint *shader_storage_objects, *uniform_locations;
         
         ///<summary>
         ///WARNING read-only!
         ///</summary>
-		unsigned int ssbo_count, uniform_count;
+		uint ssbo_count, uniform_count;
 
         ///<summary>
         ///The number of workgroups for all axes. 
@@ -61,7 +63,7 @@ namespace fgr {
         ///<param name="global_invocation_size">The global invocation size, as a vector.</param>
         ///<param name="uniforms">A vector containing the names of all uniform variables.</param>
         ///<returns>The success, false being a success.</returns>
-		bool loadFromFile(const std::string& path, const unsigned int shader_storage_object_count, glm::uvec3 global_invocation_size, std::vector<std::string> uniforms = std::vector<std::string>());
+		bool loadFromFile(const std::string& path, const uint shader_storage_object_count, glm::uvec3 global_invocation_size, const std::vector<std::string>& uniforms = std::vector<std::string>());
 
         ///<summary>
         ///Run the shader.

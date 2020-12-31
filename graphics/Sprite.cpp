@@ -61,6 +61,39 @@ namespace fgr {
 		graphics_check_error();
 	}
 
+	void SpriteArray::resetBatch() {
+		batch_start = 0;
+		update_required = false;
+		push_required = false;
+	}
+
+	void SpriteArray::pushSprite(const Sprite& sprite, bool enforced) {
+		if (!push_required && !enforced) {
+			++batch_start;
+			return;
+		}
+		if (sprites.size() <= batch_start) sprites.resize(batch_start + 16);
+		sprites[batch_start] = sprite;
+		++batch_start;
+		update();
+		update_required = true;
+	}
+
+	void SpriteArray::pushSprites(const std::vector<Sprite>& push, bool enforced) {
+		if (!push_required && !enforced) {
+			batch_start += push.size();
+			return;
+		}
+		if (sprites.size() < batch_start + push.size()) sprites.resize(batch_start + 16 + push.size());
+		std::copy(push.begin(), push.end(), sprites.begin() + batch_start);
+		batch_start += push.size();
+		update_required = true;
+	}
+
+	void SpriteArray::requestUpdate() {
+		push_required = true;
+	}
+
 	void SpriteArray::setSprites(const std::vector<Sprite>& set) {
 		graphics_check_external();
 
@@ -85,11 +118,16 @@ namespace fgr {
 		glUniformMatrix3fv(shader.transformations_uniform, 1, false, glm::value_ptr(rectangle.transform));
 		shader.setInt(0, (int)fgr::TextureUnit::misc);
 		
-		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, rectangle.vertices_size, glm::min((unsigned int)count, instances_allocted));
+		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, rectangle.vertices_size, glm::min((uint)count, instances_allocted));
 
 		glBindVertexArray(0);
 
 		graphics_check_error();
+	}
+
+	void SpriteArray::drawBatch(Shader& shader) {
+		if (update_required) update();
+		draw(shader, batch_start);
 	}
 
 	void SpriteArray::update() {
@@ -147,7 +185,7 @@ namespace fgr {
 		id = ++current_batch_id;
 	}
 
-	void SpriteBatcher::pushSprite(Sprite& sprite) {
+	void SpriteBatcher::pushSprite(const Sprite& sprite) {
 		long long _id = 0;
 		if (current_batch) {
 			_id = current_batch->id;
@@ -159,6 +197,20 @@ namespace fgr {
 		if (sprites->size() <= current_sprite_index) sprites->resize(current_sprite_index + 16);
 		(*sprites)[current_sprite_index] = sprite;
 		++current_sprite_index;
+	}
+
+	void SpriteBatcher::pushSprites(const std::vector<Sprite>& push) {
+		long long _id = 0;
+		if (current_batch) {
+			_id = current_batch->id;
+		}
+		if (_id != id) {
+			finalizeBatch();
+			current_batch = this;
+		}
+		if (sprites->size() <= current_sprite_index) sprites->resize(current_sprite_index + 16 + push.size());
+		std::copy(push.begin(), push.end(), sprites->begin() + current_sprite_index);
+		current_sprite_index += push.size();
 	}
 
 	void SpriteBatcher::dispose() {

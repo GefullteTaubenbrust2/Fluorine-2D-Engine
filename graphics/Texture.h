@@ -3,10 +3,14 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "../logic/SpriteSheet.h"
+
 #include "../logic/Types.h"
 
+#include "VertexArray.h"
+
 namespace fgr {
-	enum class TextureUnit;
+	enum TextureUnit;
 
     ///<summary>
     ///A struct for handling OpenGL textures. One handle may be used for multiple textures throughout its lifetime.
@@ -25,7 +29,7 @@ namespace fgr {
         ///<summary>
         ///The ID of the texture. WARNING: read-only!
         ///</summary>
-		unsigned int texture = 0;
+		uint texture = 0;
         
         ///<summary>
         ///"texture type" specifies the internalformat (e.g. GL_RGBA16). "texture format" specifies the format (e.g. GL_RGBA). 
@@ -52,6 +56,8 @@ namespace fgr {
         ///</summary>
         ///<param name="path">The path of the image file.</param>
 		void loadFromFile(const std::string& path, bool flip_vertically = true);
+
+		void saveFile(const std::string& path, bool flip_vertically = true);
 
         ///<summary>
         ///Load a handle from an ID.
@@ -91,7 +97,7 @@ namespace fgr {
 		///<param name="data">A pointer to be assigned the raw image data. Its length is calculated as width*height*bytes_per_pixel.</param>
 		///<param name="format">The format to be retrieved.</param>
 		///<returns>The success, true being a failure and false a success.</returns>
-		bool readRect(int x, int y, int width, int height, int format, unsigned char* data);
+		bool readRect(int x, int y, int width, int height, int format, u8* data);
 
 		///<summary>
 		///Set the image data (in the OpenGL buffer) within a given rectangle. The formats must be compatible.
@@ -101,7 +107,7 @@ namespace fgr {
 		///<param name="width">The width of the rectangle.</param>
 		///<param name="height">The height of the rectangle.</param>
 		///<param name="data">The data within the rectangle.</param>
-		void setRect(int x, int y, int width, int height, unsigned char* data);
+		void setRect(int x, int y, int width, int height, u8* data);
 
         ///<summary>
         ///Destroy present data. The OpenGL texture itself will be destroyed too.
@@ -124,7 +130,7 @@ namespace fgr {
 	///<summary>
     ///Texture units that can be bound to. "dither_texture" is used for dithering and "misc" should not be used.
     ///</summary>
-	enum class TextureUnit {
+	enum TextureUnit {
 		texture0 = 2,
 		texture1 = 3,
 		texture2 = 4,
@@ -165,9 +171,9 @@ namespace fgr {
         ///<summary>
         ///The ID of the texture. WARNING: read-only!
         ///</summary>
-		unsigned int id;
+		uint id = 0;
 
-		unsigned int fbo = 0, depth_rbo = 0;
+		uint fbo = 0, depth_rbo = 0;
 
 		int fbo_layer;
         
@@ -220,6 +226,10 @@ namespace fgr {
         ///<param name="texture_format">"texture format" specifies the format (e.g. GL_RGBA).</param>
 		void createBuffer(int wrap, int filter, int texture_type = GL_RGBA, int texture_format = GL_RGBA);
 
+		///<summary>
+		/// Create an FBO for a layer of the texture.
+		///</summary>
+		///<param name="layer">The targeted layer.</param>
 		FrameBuffer createFBO(int layer);
 
 		void destroyFBO();
@@ -233,7 +243,7 @@ namespace fgr {
         ///Bind the texture for rendering.
         ///</summary>
         ///<param name="unit">The unit to be bound to.</param>
-		void bindToUnit(const TextureUnit unit);
+		void bindToUnit(TextureUnit unit);
 
 		///<summary>
 		///Retrieve the image data (from the handle's data itself) within a given rectangle.
@@ -262,5 +272,91 @@ namespace fgr {
         ///Destroy present data. The OpenGL texture itself will be destroyed too.
         ///</summary>
 		void dispose();
+	};
+
+	///<summary>
+	/// A struct used for adressing textures contained within a TextureStorage. Do not attempt to manually construct an instance of this.
+	///</summary>
+	struct SubTexture {
+		u32 hash = INVALID_INDEX;
+		u32 layer = 0;
+
+		SubTexture();
+	};
+
+	///<summary>
+	/// A struct for conviniently storing multiple textures of the same format. Note that the size of these textures is limited.
+	///</summary>
+	struct TextureStorage : public ArrayTexture {
+	protected:
+		std::vector<flo::SpriteSheet> allocators;
+		VertexArray clear_va;
+
+	public:
+		TextureStorage() = default;
+
+		///<summary>
+		/// Construct a TextureStorage.
+		///</summary>
+		///<param name="width">The maximum width a texture can have.</param>
+		///<param name="height">The maximum height a texture can have.</param>
+		///<param name="bytes_per_pixel">How many bytes of data one pixel contains. This should probably be left at 4.</param>
+		TextureStorage(int width, int height, int bytes_per_pixel = 4);
+
+		///<summary>
+		/// Creates a new layer. Do not call this!
+		///</summary>
+		void addLayer();
+
+		///<summary>
+		/// Add a texture to the storage.
+		///</summary>
+		///<param name="width">The width of the added texture.</param>
+		///<param name="height">The height of the added texture.</param>
+		///<param name="data">The data contained within the added texture.</param>
+		///<returns>The subtexture that is created.</returns>
+		SubTexture addTexture(int width, int height, u8* data);
+
+		///<summary>
+		/// Load an image from a file and add it.
+		///</summary>
+		///<param name="path">The path of the file.</param>
+		///<param name="flip_vertically">Flip the loaded contents vertically?.</param>
+		///<returns>The subtexture that is created. Its hash is invalid if unsuccessfull.</returns>
+		SubTexture addImage(const std::string& path, bool flip_vertically = true);
+
+		///<summary>
+		/// Get the bounds of a subtexture. When the components are negative, the subtexture is invalid.
+		///</summary>
+		///<param name="texture_unit">The subtexture.</param>
+		///<returns>The bounds in pixel space.</returns>
+		glm::ivec4 getTextureBounds(SubTexture texture_unit);
+
+		///<summary>
+		/// Get the normalized texture coordinated of a set of bounds.
+		///</summary>
+		///<param name="bounds">The bounds in question.</param>
+		///<param name="vertically_flipped">Are the contents of the bounds flipped vertically?</param>
+		///<returns>The normalized texture coordinates.</returns>
+		glm::vec4 getTextureCoordinates(const glm::ivec4& bounds, bool vertically_flipped);
+
+		///<summary>
+		/// Free a subtexture from the storage, invalidating it.
+		///</summary>
+		///<param name="texture_unit">The unit in question.</param>
+		void free(SubTexture texture_unit);
+
+		///<summary>
+		/// Create a framebuffer from a subtexture and bind it. [-1.;-1.] and [1.;1.] are the bottom left and top right corners of the subtexture respectively.
+		/// Rendering outside of this range will still be possible, so take heed.
+		///</summary>
+		///<param name="texture">The unit in question.</param>
+		void bindFrameBuffer(SubTexture texture);
+
+		///<summary>
+		/// Clear a subtexture. The color that will be used is [0., 0., 0., 0.].
+		///</summary>
+		///<param name="texture">The unit in question.</param>
+		void clearFramebuffer(SubTexture texture);
 	};
 }

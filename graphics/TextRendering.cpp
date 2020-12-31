@@ -32,12 +32,13 @@ namespace fgr {
 		delete[] tex.data;
 	}
 
-	BitmapText::BitmapText(BitmapFont& font, int space_width, int linebreak_height, TextFormat format, glm::vec2 pixel_size, BitmapTextRenderer* renderer) :
+	BitmapText::BitmapText(BitmapFont& font, int space_width, int linebreak_height, TextFormat format, const glm::vec2& pixel_size, BitmapTextRenderer* renderer) :
 		font(&font), space_width(space_width), linebreak_height(linebreak_height), format(format), renderer(renderer) {
 		destination_coords = glm::vec4(0.0, 0.0, pixel_size.x, pixel_size.y);
+		base_sprite = Sprite(0, glm::mat3(1.), glm::vec4(0.), glm::vec4(1.));
 	}
 
-	void BitmapText::update_string(std::string str) {
+	void BitmapText::update_string(const std::string& str) {
 		//return;
 		BitmapText::str = str;
 
@@ -45,9 +46,9 @@ namespace fgr {
 		space_count.resize(1);
 		space_count[0] = 0;
 
+		int layer = texture.layer;
 		int buffer_width = destination_coords.z - destination_coords.x;
 		int buffer_height = destination_coords.w - destination_coords.y;
-		int tex_size = renderer->rendered_buffer.width;
 		int last_space = -1;
 		float x = 0;
 		int line = 0;
@@ -75,7 +76,7 @@ namespace fgr {
 				++line;
 				x = 0;
 				last_space = -1;
-				if (line * linebreak_height > buffer_height) goto end;
+				if ((line - BitmapText::line) * linebreak_height > buffer_height) goto end;
 				continue;
 			default:
 				w = (int)font->char_widths[chars[i]];
@@ -119,14 +120,14 @@ namespace fgr {
 		linebreaks.push_back(str.size());
 		widths[line] = x - ((int)space_count[line]) * (int)space_width;
 
-		glm::vec2 scale = glm::vec2((float)font->char_size / tex_size, (float)font->char_size / tex_size);
+		glm::vec2 scale = glm::vec2((float)font->char_size / buffer_width, (float)font->char_size / buffer_height);
 		glm::mat3 scaled = flo::translate(flo::scale(glm::mat3(1.0), scale * -2.f), glm::vec2(-1.0, 1.0));
 
 		glm::mat3 tex_scaled = flo::scale(glm::mat3(1.0), -glm::vec2((float)font->char_size / font->texture_size));
 
 		x = 0;
 		int y = 0;
-		line = 0;
+		line = glm::max(0, BitmapText::line);
 
 		fgr::Shader::textured_instanced.setInt(0, 0);
 		//graphics::Shader::textured_instanced.setInt(1, (int)graphics::TextureUnit::dither_texture);
@@ -148,7 +149,13 @@ namespace fgr {
 
 		renderer->letter_array.instances.clear();
 
-		for (int i = 0; i < str.size(); ++i) {
+		int start = 0;
+		if (line > 0) {
+			if (line > linebreaks.size()) return;
+			start = linebreaks[line - 1] + 1;
+		}
+
+		for (int i = start; i < str.size(); ++i) {
 			if (linebreaks[line] == i) {
 				++line;
 				switch (format) {
@@ -168,8 +175,10 @@ namespace fgr {
 				if (chars[i] == ' ') continue;
 			}
 
+			if (y + font->char_size > buffer_height) break;
+
 			if (chars[i] > 32) {
-				glm::mat3 trans = flo::translate(scaled, glm::vec2((float)((int)x + font->char_size + destination_coords.x) / tex_size * 2., -(float)(y + destination_coords.y) / tex_size * 2.));
+				glm::mat3 trans = flo::translate(scaled, glm::vec2((float)((int)x + font->char_size) / buffer_width * 2., -(float)(y) / buffer_height * 2.));
 				const int xp = (((int)chars[i]) % (int)(font->texture_size / font->char_size)) + 1;
 				const int yp = (int)font->texture_size / (int)font->char_size - ((int)chars[i]) / (font->texture_size / font->char_size);
 				renderer->letter_array.instances.push_back(fgr::Instance(trans, flo::translate(tex_scaled, glm::vec2((float)(xp)* (float)font->char_size / (float)font->texture_size, (float)(yp)* (float)font->char_size / (float)font->texture_size)), glm::vec4(1.0)));
@@ -187,54 +196,38 @@ namespace fgr {
 				}
 			}
 		}
-		if (renderer->rendered_buffer.fbo_layer != layer) {
-			renderer->fbo = renderer->rendered_buffer.createFBO(layer);
-		}
-		//renderer->fbo.clear(glm::vec4(1.0, 0.0, 0.0, 0.5));
-		renderer->fbo.bind();
 
-		glDisable(GL_BLEND);
-		renderer->clear_array.setTransformations(flo::scale_and_translate(glm::vec2(2. * (destination_coords.z - destination_coords.x) / (float)tex_size, 2. * (destination_coords.w - destination_coords.y) / (float)tex_size), glm::vec2(destination_coords.x * 2. / (float)tex_size - 1., (-destination_coords.y + tex_size - (destination_coords.w - destination_coords.y)) * 2. / (float)tex_size - 1.)));
-		renderer->clear_array.draw(fgr::Shader::basic, fgr::RendeMode::triangle_strip);
-		glEnable(GL_BLEND);
+		renderer->rendered_buffer->bindFrameBuffer(texture);
+
+		renderer->rendered_buffer->clearFramebuffer(texture);
 
 		renderer->letter_array.update();
 		renderer->letter_array.draw(fgr::Shader::textured_instanced, GL_TRIANGLE_STRIP);
-		sprite->textureOffset = glm::vec2(destination_coords.x, -destination_coords.y + tex_size - (destination_coords.w - destination_coords.y)) / (float)tex_size;
-		sprite->textureScale = glm::vec2(destination_coords.z - destination_coords.x, destination_coords.w - destination_coords.y) / (float)tex_size;
-		sprite->texture_layer = layer;
+		glm::vec4 bounds = renderer->rendered_buffer->getTextureCoordinates(destination_coords, false);
+		base_sprite.textureOffset = glm::vec2(bounds.x, bounds.y);
+		base_sprite.textureScale = glm::vec2(bounds.z - bounds.x, bounds.w - bounds.y);
+		base_sprite.texture_layer = layer;
 
-		renderer->fbo.unbind();
-
-		renderer->sprites.update();
+		RenderTarget::bound.unbind();
 	}
 
-	void BitmapText::setRendering(glm::mat3 transform, glm::vec4 color) {
-		sprite->transform = transform;
-		sprite->color = color;
-		renderer->sprites.update();
+	Sprite BitmapText::setSprite(const glm::mat3& matrix, const glm::vec4& color) {
+		base_sprite.transform = matrix;
+		base_sprite.color = color;
+		return base_sprite;
+	}
+
+	void BitmapText::free(bool destroy) {
+		if (index >= 0) renderer->free(index, destroy);
 	}
 
 	void BitmapTextRenderer::init() {
-		const int layer_count = 5;
-		rendered_buffer = ArrayTexture(1024, 1024, layer_count, 4);
-		fbo.tex_width = rendered_buffer.width;
-		fbo.tex_height = rendered_buffer.height;
-		//rendered_buffer.data = { 0 };
-		delete[] rendered_buffer.data;
-		rendered_buffer.data = nullptr;
-		rendered_buffer.createBuffer(GL_REPEAT, GL_NEAREST);
-		/*for (int i = 0; i < layer_count; ++i) {
-			rendered_buffer.createFBO(i);
-			fbo.fbo = rendered_buffer.fbo;
-			fbo.clear(glm::vec4(0.0));
-		}*/
-		//std::fill(rendered_buffer.data, rendered_buffer.data + (1024 * 1024 * 4 * layer_count), 0);
-		sprites.init();
-		//sprites.sprites.push_back(Sprite(0, flo::scale_and_translate(glm::vec2(2.), glm::vec2(-1.)), glm::vec4(0.0, 0.0, 1.0, 1.0), glm::vec4(1.0)));
-		//sprites.sprites.push_back(Sprite(0, glm::mat3(0.0), glm::vec4(1.0), glm::vec4(1.0)));
-		sprites.update();
-		sprites.texture_array = rendered_buffer.id;
+		allocated_texture = true;
+
+		rendered_buffer = new TextureStorage(1024, 1024, 4);
+		
+		rendered_buffer->createBuffer(GL_REPEAT, GL_NEAREST);
+		
 		letter_array.init();
 		letter_array.va.setVertices(std::vector<fgr::Vertex>{
 			fgr::Vertex(glm::vec3(0.0, 0.0, 0.5), glm::vec2(0.0, 0.0), glm::vec4(1.0)),
@@ -243,80 +236,51 @@ namespace fgr {
 			fgr::Vertex(glm::vec3(1.0, 1.0, 0.5), glm::vec2(1.0, 1.0), glm::vec4(1.0)),
 		}.data(), 4);
 		letter_array.dynamic_allocation = true;
+	}
 
-		for (int i = 0; i < layer_count; ++i) spritesheets.push_back(flo::SpriteSheet(1024, 1024));
+	void BitmapTextRenderer::init(TextureStorage& texture) {
+		allocated_texture = false;
 
-		clear_array.init();
-		clear_array.setVertices(std::vector<fgr::Vertex>{
-			fgr::Vertex(glm::vec3(0.0, 0.0, 0.5), glm::vec2(0.0, 0.0), glm::vec4(0.0)),
-			fgr::Vertex(glm::vec3(1.0, 0.0, 0.5), glm::vec2(1.0, 0.0), glm::vec4(0.0)),
-			fgr::Vertex(glm::vec3(0.0, 1.0, 0.5), glm::vec2(0.0, 1.0), glm::vec4(0.0)),
-			fgr::Vertex(glm::vec3(1.0, 1.0, 0.5), glm::vec2(1.0, 1.0), glm::vec4(0.0)),
+		rendered_buffer = &texture;
+
+		letter_array.init();
+		letter_array.va.setVertices(std::vector<fgr::Vertex>{
+			fgr::Vertex(glm::vec3(0.0, 0.0, 0.5), glm::vec2(0.0, 0.0), glm::vec4(1.0)),
+				fgr::Vertex(glm::vec3(1.0, 0.0, 0.5), glm::vec2(1.0, 0.0), glm::vec4(1.0)),
+				fgr::Vertex(glm::vec3(0.0, 1.0, 0.5), glm::vec2(0.0, 1.0), glm::vec4(1.0)),
+				fgr::Vertex(glm::vec3(1.0, 1.0, 0.5), glm::vec2(1.0, 1.0), glm::vec4(1.0)),
 		}.data(), 4);
-
-		sprites.texture_array = rendered_buffer.id;
+		letter_array.dynamic_allocation = true;
 	}
 
-	void BitmapTextRenderer::append(BitmapText& text) {
-		glm::vec2 tex_scale = glm::vec2(text.destination_coords.z - text.destination_coords.x, text.destination_coords.w - text.destination_coords.y);
-		/*if (next_alloc.y + tex_scale.y < rendered_buffer.height) {
-			if (next_alloc.x + tex_scale.x > x_max) x_max = next_alloc.x + tex_scale.x;
-		}
-		else {
-			next_alloc.y = 0.;
-			next_alloc.x = x_max;
-			if (next_alloc.x + tex_scale.x > x_max) x_max = next_alloc.x + tex_scale.x;
-		}
-		if (next_alloc.x + tex_scale.x >= rendered_buffer.width) {
-			next_alloc = glm::vec2(0.0);
-			++allocation_layer;
-			x_max = 0;
-		}
-		text.destination_coords = glm::vec4(next_alloc.x, next_alloc.y, next_alloc.x + tex_scale.x, next_alloc.y + tex_scale.y);
-		text.layer = allocation_layer;*/
-		//text.destination_coords = glm::vec4(0.0, 0.0, tex_scale.x, tex_scale.y);
+	void BitmapTextRenderer::append(BitmapText* text) {
+		glm::vec2 tex_scale = glm::vec2(text->destination_coords.z - text->destination_coords.x, text->destination_coords.w - text->destination_coords.y);
 		
-		glm::vec2 allocation_pos;
-		int layer = 0;
-		do {
-			allocation_pos = spritesheets[layer].allocate(tex_scale);
-			++layer;
-		} while (layer < 5 && allocation_pos.x < 0);
-		--layer;
+		SubTexture index = rendered_buffer->addTexture(tex_scale.x, tex_scale.y, nullptr);
+		glm::ivec4 bounds = rendered_buffer->getTextureBounds(index);
 
-		if (layer < 5) {
-			sprites.sprites.push_back(Sprite(0, glm::mat3(1.0), glm::vec4(1.0), glm::vec4(1.0)));
-			text.destination_coords = glm::vec4(allocation_pos.x, allocation_pos.y, allocation_pos.x + tex_scale.x, allocation_pos.y + tex_scale.y);
-			text.layer = layer;
-			text_objects.push_back(text);
-			for (int i = 0; i < text_objects.size(); ++i) {
-				text_objects[i].sprite = sprites.sprites.data() + i;
-			}
-		}
-		sprites.update();
+		text->destination_coords = bounds;
+		text->texture = index;
+		text->index = text_objects.size();
+		text_objects.push_back(text);
 	}
 
-	BitmapText& BitmapTextRenderer::getNewest() {
+	BitmapText* BitmapTextRenderer::getNewest() {
 		return text_objects[text_objects.size() - 1];
 	}
 
-	void BitmapTextRenderer::free(int index) {
-		spritesheets[text_objects[index].layer].free(text_objects[index].destination_coords);
+	void BitmapTextRenderer::free(int index, bool destroy) {
+		rendered_buffer->free(text_objects[index]->texture);
+		if (destroy) delete text_objects[index];
 		text_objects.erase(text_objects.begin() + index);
-		sprites.sprites.erase(sprites.sprites.begin() + index);
 		for (int i = 0; i < text_objects.size(); ++i) {
-			text_objects[i].sprite = sprites.sprites.data() + i;
+			text_objects[i]->index = i;
 		}
 	}
 
-	void BitmapTextRenderer::render(fgr::Shader& shader) {
-		sprites.texture_array = rendered_buffer.id;
-		sprites.draw(shader);
-	}
 	void BitmapTextRenderer::dispose() {
-		rendered_buffer.dispose();
-		sprites.dispose();
+		rendered_buffer->dispose();
 		letter_array.dispose();
-		clear_array.dispose();
+		if (allocated_texture) delete rendered_buffer;
 	}
 }

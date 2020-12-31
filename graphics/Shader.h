@@ -9,6 +9,8 @@
 
 #include <vector>
 
+#include "../logic/Types.h"
+
 namespace fgr {
 #define set_uniform(shader, type, args) glUniform ## type (shader.shader_program, args)
 
@@ -19,12 +21,12 @@ namespace fgr {
         ///<summary>
         ///The ID of the named program object. WARNING: read-only!
         ///</summary>
-		unsigned int shader_program, vertex_shader, fragment_shader, geometry_shader;
+		uint shader_program, vertex_shader, fragment_shader, geometry_shader;
         
         ///<summary>
         ///The location of the "transformations" uniform that should be present in the shader, else UB might result. WARNING: read-only!
         ///</summary>
-		unsigned int transformations_uniform;
+		uint transformations_uniform;
         
         ///<summary>
         ///Is the Shader loaded? WARNING: read-only!
@@ -44,13 +46,13 @@ namespace fgr {
         ///<item><description><para><em>sprites_instanced_depth: currently deprecated.</em></para></description></item>
         ///</list>
         ///</summary>
-		static Shader basic, basic_instanced, line, line_instanced, textured, textured_instanced, sprites_instanced, sprites_instanced_depth;
+		static Shader basic, basic_instanced, line, line_instanced, textured, textured_instanced, sprites_instanced, sprites_instanced_depth, lit_3d;
 
         ///<summary>
         ///A vector containing the uniform locations within the shader, the index is equal to the index of the appropriate name given on construction. 
         /// WARNING: read-only
         ///</summary>
-		std::vector<unsigned int> uniform_locations;
+		std::vector<uint> uniform_locations;
 
 		Shader() = default;
         
@@ -61,7 +63,7 @@ namespace fgr {
         ///<param name="fragment_path">The path of the fragment shader source file.</param>
         ///<param name="uniforms">The names of all accessible uniform variables.</param>
         ///<returns>The success, false being a success.</returns>
-        bool loadFromFile(const std::string& vertex_path, const std::string& fragment_path, std::vector<std::string> uniforms = std::vector<std::string>());
+        bool loadFromFile(const std::string& vertex_path, const std::string& fragment_path, const std::vector<std::string>& uniforms = std::vector<std::string>());
 
         ///<summary>
          ///Load a shader with a vertex, geometry and fragment shader.
@@ -71,7 +73,7 @@ namespace fgr {
         ///<param name="fragment_path">The path of the fragment shader source file.</param>
         ///<param name="uniforms">The names of all accessible uniform variables.</param>
         ///<returns>The success, false being a success.</returns>
-		bool loadFromFile(const std::string& vertex_path, const std::string& fragment_path, const std::string& geometry_path, std::vector<std::string> uniforms = std::vector<std::string>());
+		bool loadFromFile(const std::string& vertex_path, const std::string& fragment_path, const std::string& geometry_path, const std::vector<std::string>& uniforms = std::vector<std::string>());
 
         ///<summary>
         ///Destroy the shader programs.
