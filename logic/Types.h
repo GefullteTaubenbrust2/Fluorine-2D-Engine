@@ -1,4 +1,5 @@
 #pragma once
+#include <typeindex>
 
 #ifdef _WIN64
 typedef long long i64;
@@ -29,3 +30,20 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long long ulong;
 #endif
+
+typedef size_t typehash;
+
+namespace flo {
+	///<summary>
+	/// Generate a unique hash for a type.
+	///</summary>
+	template<typename T>
+	constexpr typehash uniqueCode() {
+		return std::type_index(typeid(T)).hash_code();
+	}
+
+#define TYPEHASH(type) flo::uniqueCode<type>()
+#define TYPE_VECTOR(...) std::vector<typehash>{ __VA_ARGS__ }
+}
+
+#define INVALID_INDEX 0xffffffff

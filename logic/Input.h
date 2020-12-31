@@ -18,19 +18,22 @@ namespace flo {
 		hit = 4,
 	};
 
+	extern u32 input_key_group;
+
+	u32 uniqueKeyGroup();
+
     ///<summary>
     ///Get the state of a given key.
     ///</summary>
     ///<param name="key">The id of the key to check.</param>
     ///<returns>The state of the key.</returns>
-	InputType getKey(const unsigned int key);
+	InputType getKey(const uint key);
 
     ///<summary>
-    ///Get the string that has been entered using the keyboard since the input was last checked.
+    /// Set a string to which you may write using the keyboard.
     ///</summary>
-    ///<returns>The entered string.</returns>
-	//std::string getEntered();
-
+	///<param name="str">A pointer to the string in question.</param>
+	///<param name="exit_state">A pointer to a bool that will be set to true when escape is hit. This may also be a nullptr.</param>
 	void setInputString(std::string* str, bool* exit_state);
 
     ///<summary>
@@ -38,7 +41,7 @@ namespace flo {
     ///</summary>
     ///<param name="mouse_button">The mouse button, 0 being left, 1 right and 2 the middle mouse button.</param>
     ///<returns>The success, false being a success.</returns>
-	InputType getMouseButton(const unsigned int mouse_button);
+	InputType getMouseButton(const uint mouse_button);
 
     ///<summary>
     ///Get the position of the cursor, in pixels from the top left corner of the frame.
@@ -52,10 +55,9 @@ namespace flo {
     ///<returns>The amount of scroll as a vector. Only the y component is expected to be not 0.</returns>
 	const glm::vec2 getScroll();
 
-    ///<summary>
-    ///Set the keys to monitor for input. The index for these is used by the "getKey()" function.
-    ///</summary>
-    ///<param name="to_monitor">The keys that are to be monitored, as chars. Use the GLFW_X variables.</param>
-    ///<param name="size">The amount of keys in the given array.</param>
-	void setInputKeys(const i16* to_monitor, const int size);
+	///<summary>
+	/// Register a key to query and get the ID.
+	///</summary>
+	///<returns>The ID of the key.</returns>
+	uint getKeyEnforced(i16 key);
 }

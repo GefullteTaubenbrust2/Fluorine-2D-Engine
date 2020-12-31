@@ -13,6 +13,20 @@ namespace flo {
 
 		u32 key_enter, key_escape, key_left, key_right, key_up, key_down, key_ctrl, key_backspace, key_delete, key_v, key_c;
 
+		void init_textinput() {
+			key_enter = getKeyEnforced(GLFW_KEY_ENTER);
+			key_escape = getKeyEnforced(GLFW_KEY_ESCAPE);
+			key_left = getKeyEnforced(GLFW_KEY_LEFT);
+			key_right = getKeyEnforced(GLFW_KEY_RIGHT);
+			key_up = getKeyEnforced(GLFW_KEY_UP);
+			key_down = getKeyEnforced(GLFW_KEY_DOWN);
+			key_ctrl = getKeyEnforced(GLFW_KEY_LEFT_CONTROL);
+			key_backspace = getKeyEnforced(GLFW_KEY_BACKSPACE);
+			key_delete = getKeyEnforced(GLFW_KEY_DELETE);
+			key_v = getKeyEnforced(GLFW_KEY_V);
+			key_c = getKeyEnforced(GLFW_KEY_C);
+		}
+
 		void update_parent_string() {
 			*entered_string = entered_clone;
 			entered_string->insert(entered_string->begin() + cursor_pos, '|');
@@ -131,7 +145,7 @@ namespace flo {
 			return entered_string;
 		}
 
-		void character_callback(GLFWwindow* window, unsigned int codepoint) {
+		void character_callback(GLFWwindow* window, uint codepoint) {
 			if (codepoint < 128 && entered_string) {
 				entered_clone.insert(entered_clone.begin() + cursor_pos, (uchar)codepoint);
 				++cursor_pos;

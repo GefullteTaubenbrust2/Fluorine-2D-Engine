@@ -2,6 +2,8 @@
 
 #include <random>
 
+#include "../logic/Types.h"
+
 namespace flo {
 	template <typename Trng = std::mt19937>
 	class Rng
@@ -11,7 +13,7 @@ namespace flo {
 		std::mt19937 mt;
 
 	public:
-		Rng(unsigned int seed)
+		Rng(uint seed)
 			: randomDevice(), mt(seed)
 		{}
 

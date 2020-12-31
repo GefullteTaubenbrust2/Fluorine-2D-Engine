@@ -2,7 +2,7 @@
 #include <chrono>
 
 namespace flo {
-	/// <summary> Units of time measurement
+	/// <summary> Units of time measurement </summary>
 	enum TimeUnit {
 		nanosecond = 0,
 		microsecond = 1,
@@ -18,9 +18,9 @@ namespace flo {
 	public:
 		Time() = default;
 
-		/// <summary> Convert an amount of time to a Time object
-		/// <param name="amount The amount of units to convert to a Time object
-		/// <param name="unit The time unit to be used
+		/// <summary> Convert an amount of time to a Time object </summary>
+		/// <param name="amount"> The amount of units to convert to a Time object </param>
+		/// <param name="unit"> The time unit to be used </param>
 		Time(double amount, TimeUnit unit) {
 			switch (unit) {
 			case nanosecond :
@@ -38,7 +38,7 @@ namespace flo {
 			}
 		}
 
-		/// <summary> Convert seconds to a Time object
+		/// <summary> Convert seconds to a Time object </summary>
 		/// <param name="seconds The amount of seconds
 		explicit Time(double seconds) : milliseconds(seconds * 1000) {}
 
@@ -94,31 +94,31 @@ namespace flo {
 			return milliseconds < right.milliseconds;
 		}
 
-		/// <summary> Convert a Time object to seconds by casting
+		/// <summary> Convert a Time object to seconds by casting </summary>
 		operator double() const {
 			return milliseconds / 1000;
 		}
 	};
 
-	/// <summary> A simple struct for measuring time intervals
+	/// <summary> A simple struct for measuring time intervals </summary>
 	/// \see Time
 	struct Stopclock {
 	protected:
 		std::chrono::time_point<std::chrono::high_resolution_clock> start;
 
 	public:
-		/// <summary> Construct and start the stopclock
+		/// <summary> Construct and start the stopclock </summary>
 		Stopclock() {
 			start = std::chrono::high_resolution_clock::now();
 		}
 
-		/// <summary> If this function is called, the stopclock measures its time from that point on
+		/// <summary> If this function is called, the stopclock measures its time from that point on </summary>
 		void reset() {
 			start = std::chrono::high_resolution_clock::now();
 		}
 
-		/// <summary> This function does not actually stop the stopclock, but measures the time since it was started or last reset
-		/// <returns> The time since it was started or last reset
+		/// <summary> This function does not actually stop the stopclock, but measures the time since it was started or last reset </summary>
+		/// <returns> The time since it was started or last reset </returns>
 		/// \see reset
 		Time stop() {
 			return Time(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - start).count(), nanosecond);

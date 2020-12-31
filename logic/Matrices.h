@@ -39,7 +39,7 @@ namespace flo {
 	glm::mat3 translate(const glm::mat3& matrix, glm::vec2 offset);
 
     ///<summary>
-    ///Scale and then translate a matrix.
+    ///Scale and then translate a space.
     ///</summary>
     ///<param name="matrix">The matrix to translate.</param>
     ///<param name="offset">The offset by which to translate.</param>
@@ -47,10 +47,31 @@ namespace flo {
     ///<returns>The resulting matrix.</returns>
 	glm::mat3 scale_and_translate(const glm::vec2& scale, const glm::vec2& offset);
 
-	glm::mat3 scale_and_translate_and_rotate(const glm::vec2& scale, const glm::vec2& offset, const glm::vec2& direction);
+	///<summary>
+	/// Scale, then rotate, then translate a space.
+	///</summary>
+	///<param name="scale">The scale.</param>
+	///<param name="offset">The offest.</param>
+	///<param name="direction">For an angle a of rotation, this should be [cos(a), sin(a)].</param>
+	///<returns>The resulting matrix.</returns>
+	glm::mat3 scale_rotate_and_translate(const glm::vec2& scale, const glm::vec2& offset, const glm::vec2& direction);
 
+	///<summary>
+	/// Translate, then scale, then rotate, then again translate a space.
+	///</summary>
+	///<param name="ioffset">The frist offest.</param>
+	///<param name="scale">The scale.</param>
+	///<param name="offset">The second offest.</param>
+	///<param name="direction">For an angle a of rotation, this should be [cos(a), sin(a)].</param>
+	///<returns>The resulting matrix.</returns>
 	glm::mat3 generate_tsrt_matrix(const glm::vec2& ioffset, const glm::vec2& scale, const glm::vec2& direction, const glm::vec2& offset);
 
+	///<summary>
+	/// This matrix will now scale the z-component of a 3D vector.
+	///</summary>
+	///<param name="matrix">The matrix to apply the transformation to.</param>
+	///<param name="depth">The depth value to use.</param>
+	///<returns>The resulting matrix.</returns>
 	glm::mat3 setDepth(glm::mat3 matrix, float depth);
 
     ///<summary>
@@ -63,8 +84,7 @@ namespace flo {
 		scale_with_diagonal = 2,
 		scale_with_largest = 3,
 		scale_with_smallest = 4,
-		constant_width = 5,
-		constant_height = 6,
+		constant_scale = 5,
 		round_to_nearest = 16,
 		round_to_smallest = 32,
 		round_to_largest = 48,
@@ -77,7 +97,7 @@ namespace flo {
     ///</summary>
 	struct ScaleMode {
 		ScaleModes mode, rounding;
-		short base_width, base_height;
+		short base_dimension;
 		float base_scale;
 		char pixel_size;
 
@@ -92,7 +112,7 @@ namespace flo {
         ///<param name="base_height">The height at which the raw scaling factor, based on the height, is 1.</param>
         ///<param name="base_scale">The raw scaling factor is multiplied by this value, yielding the actual scaling factor.</param>
         ///<param name="pixel_size">-deprecated, leave as its default-.</param>
-		ScaleMode(ScaleModes mode, ScaleModes rounding, short base_width = 0, short base_height = 0, float base_scale = 1., char pixel_size = 1);
+		ScaleMode(ScaleModes mode, ScaleModes rounding, short base_dimension = 0, float base_scale = 1., char pixel_size = 1);
 	};
 
     ///<summary>
@@ -113,7 +133,14 @@ namespace flo {
     ///<returns>The resulting offset as a 2D vector. Use for translating the transformation matrix.</returns>
 	glm::vec2 centerWindowOrigin(const int width, const int height);
 
-	glm::vec2 fixToPixelPerfection(glm::vec2& pos, int pixelsize, float basescale);
+	///<summary>
+	/// Let this function return a vector 'b', then the sum of a vector 'a' that lies perfectly on a pixel and 'b' too lies perfectly on a pixel, given that the normalized coordinate space is used.
+	///</summary>
+	///<param name="pos">A vector, to which 'b' will be as close as possible.</param>
+	///<param name="width">The width of the framebuffer in pixels.</param>
+	///<param name="height">The height of the framebuffer in pixels.</param>
+	///<returns>The resulting vector 'b'.</returns>
+	glm::vec2 fixToPixelPerfection(glm::vec2& pos, const int width, const int height);
 
     ///<summary>
     ///Get the size of what would normally be one pixel after scaled by the scaling factor, in pixels. 
@@ -124,8 +151,6 @@ namespace flo {
     ///<param name="scalemode">The scalemode that will be used.</param>
     ///<returns>The size of one pixel.</returns>
 	int getPixelSize(const int width, const int height, const ScaleMode& scalemode);
-
-	int extractRelevantBase(long long scalemode);
 
 	int fixPixelScale(int width, int pixel_size);
 }

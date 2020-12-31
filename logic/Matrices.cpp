@@ -42,7 +42,7 @@ namespace flo {
 		);
 	}
 
-	glm::mat3 scale_and_translate_and_rotate(const glm::vec2& scale, const glm::vec2& offset, const glm::vec2& direction) {
+	glm::mat3 scale_rotate_and_translate(const glm::vec2& scale, const glm::vec2& offset, const glm::vec2& direction) {
 		return glm::mat3(
 			scale.x * direction.x, direction.y * scale.x, 0.0,
 			-direction.y * scale.y, scale.y * direction.x, 0.0,
@@ -64,14 +64,13 @@ namespace flo {
 		return matrix;
 	}
 
-	ScaleMode::ScaleMode(ScaleModes mode, ScaleModes rounding, short base_width, short base_height, float base_scale, char pixel_size) :
-		mode(mode), rounding(rounding), base_width(base_width), base_height(base_height), base_scale(base_scale), pixel_size(pixel_size) {
+	ScaleMode::ScaleMode(ScaleModes mode, ScaleModes rounding, short base_dimension, float base_scale, char pixel_size) :
+		mode(mode), rounding(rounding), base_dimension(base_dimension), base_scale(base_scale), pixel_size(pixel_size) {
 	}
 
 	glm::vec2 applyWindowScale(const int width, const int height, const ScaleMode& scalemode) {
 		float _scale = 1.0;
-		const int base_width = scalemode.base_width;
-		const int base_height = scalemode.base_height;
+		const int base_dim = scalemode.base_dimension;
 		const float w = fixPixelScale(width, scalemode.pixel_size);
 		const float h = fixPixelScale(height, scalemode.pixel_size);
 
@@ -93,15 +92,12 @@ namespace flo {
 			if (width < height) _scale = 1.0;
 			else _scale = h / w;
 			break;
-		case constant_width:
-			_scale = (float)base_width / w;
-			break;
-		case constant_height:
-			_scale = (float)base_height / w;
+		case constant_scale:
+			_scale = (float)base_dim / w;
 			break;
 		}
 
-		const float scale_const = (float)base_width / w;
+		const float scale_const = (float)base_dim / w;
 		float sc = 0.0;
 		switch (scalemode.rounding) {
 		case round_to_smallest: 
@@ -129,8 +125,7 @@ namespace flo {
 
 	int getPixelSize(const int width, const int height, const ScaleMode& scalemode) {
 		float _scale = 1.0;
-		const int base_width = scalemode.base_width;
-		const int base_height = scalemode.base_height;
+		const int base_dim = scalemode.base_dimension;
 		const float w = fixPixelScale(width, scalemode.pixel_size);
 		const float h = fixPixelScale(height, scalemode.pixel_size);
 
@@ -152,15 +147,12 @@ namespace flo {
 			if (width < height) _scale = 1.0;
 			else _scale = h / w;
 			break;
-		case constant_width:
-			_scale = (float)base_width / w;
-			break;
-		case constant_height:
-			_scale = (float)base_height / h;
+		case constant_scale:
+			_scale = (float)base_dim / w;
 			break;
 		}
 
-		const float scale_const = (float)base_width / w;
+		const float scale_const = (float)base_dim / w;
 		float sc = 0.0;
 		switch (scalemode.rounding) {
 		case round_to_smallest:
@@ -176,15 +168,9 @@ namespace flo {
 		return sc > 0 ? sc : 1;
 	}
 
-	glm::vec2 fixToPixelPerfection(glm::vec2& pos, int pixelsize, float basescale) {
-		return glm::vec2(std::fmod(pos.x, basescale / pixelsize), std::fmod(pos.y, basescale / pixelsize));
-	}
-
-	int extractRelevantBase(long long scalemode) {
-		const int base_width = (scalemode >> 32) & 0xffff;
-		const int base_height = (scalemode >> 48) & 0xffff;
-		if (scalemode & 15 == constant_height) return base_height;
-		return base_width;
+	glm::vec2 fixToPixelPerfection(glm::vec2& pos, const int width, const int height) {
+		glm::vec2 f = glm::vec2(2. / width, 2. / height);
+		return glm::floor(pos / f) * f;
 	}
 
 	int fixPixelScale(int width, int pixel_size) {

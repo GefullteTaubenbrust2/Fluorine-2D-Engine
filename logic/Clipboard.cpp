@@ -17,7 +17,7 @@ namespace flo {
 #endif
 	}
 
-	void copyToClipboard(std::string str) {
+	void copyToClipboard(const std::string& str) {
 #ifdef _WIN32
 		HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, str.size() + 1);
 		memcpy(GlobalLock(hMem), str.data(), str.size() + 1);

@@ -64,8 +64,8 @@ namespace flo {
 		return (rect.x >= into.x && rect.y >= into.y && rect.z < into.z && rect.w < into.w);
 	}
 
-	glm::ivec2 SpriteSheet::allocate(glm::ivec2 rect) {
-		if (rect.x > maximum_width || rect.y > maximum_height) return glm::ivec2(-1);
+	u32 SpriteSheet::allocate(glm::ivec2 rect) {
+		if (rect.x > maximum_width || rect.y > maximum_height) return INVALID_INDEX;
 
 		//Check all possible candidates
 		glm::ivec4 allocator_fit = glm::ivec4(-1);
@@ -76,14 +76,23 @@ namespace flo {
 				allocator_fit = allocators[i];
 			}
 		}
-		if (allocator_fit.x < 0) return glm::ivec2(-1);
+		if (allocator_fit.x < 0) return INVALID_INDEX;
 		glm::ivec4 allocation = glm::ivec4(allocator_fit.x, allocator_fit.y, allocator_fit.x + rect.x, allocator_fit.y + rect.y);
 
 		split_around(allocation);
 
-		allocated.push_back(allocation);
+		++current_hash;
 
-		return glm::ivec2(allocation.x, allocation.y);
+		allocated.insert(std::make_pair(current_hash, allocation));
+
+		return current_hash;
+	}
+
+	glm::ivec4 SpriteSheet::getBounds(u32 hash)
+	{
+		auto iter = allocated.find(hash);
+		if (iter == allocated.end()) return glm::ivec4(-1);
+		return iter->second;
 	}
 
 	void SpriteSheet::split_around(glm::ivec4 around) {
@@ -126,16 +135,9 @@ namespace flo {
 		}
 	}
 
-	void SpriteSheet::free(std::vector<int>& allocation_ids) {
-		//Make assertions
-		for (int index = 0; index < allocation_ids.size(); ++index) {
-			int allocation_id = allocation_ids[index];
-			if (allocation_id < 0 || allocation_id >= allocated.size()) return;
-
-			allocated.erase(allocated.begin() + allocation_id);
-			allocators.clear();
-			allocators.push_back(glm::ivec4(0, 0, width, height));
-		}
+	void SpriteSheet::free() {
+		allocators.clear();
+		allocators.push_back(glm::ivec4(0, 0, width, height));
 
 		for (int i = 0; i < allocated.size(); ++i) {
 			split_around(allocated[i]);
@@ -143,19 +145,12 @@ namespace flo {
 		clean();
 	}
 
-	void SpriteSheet::free(glm::ivec4 space) {
-		int index = -1;
-		for (int i = 0; i < allocated.size(); ++i) {
-			if (allocated[i] == space) {
-				index = i;
-				break;
-			}
+	void SpriteSheet::free(u32 hash) {
+		allocated.erase(hash);
+		++free_queue;
+		if (free_queue > 10) {
+			free();
+			free_queue = 0;
 		}
-		if (index < 0) return;
-		free_queue.push_back(index);
-		if (free_queue.size() > 10) {
-			free(free_queue);
-		}
-		free_queue.clear();
 	}
 }

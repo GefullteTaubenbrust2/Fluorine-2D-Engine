@@ -34,6 +34,8 @@
 #include <algorithm>
 #include <random>
 
+namespace flo {
+
 const FN_DECIMAL GRAD_X[] =
 {
 	1, -1, 1, -1,
@@ -2247,4 +2249,5 @@ void FastNoise::SingleGradientPerturb(unsigned char offset, FN_DECIMAL warpAmp, 
 
 	x += Lerp(lx0x, lx1x, ys) * warpAmp;
 	y += Lerp(ly0x, ly1x, ys) * warpAmp;
+}
 }

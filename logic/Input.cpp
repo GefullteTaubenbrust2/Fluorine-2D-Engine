@@ -17,8 +17,11 @@ namespace flo {
 	glm::vec2 scroll;
 	glm::vec2 scroll_result;
 
-	namespace editor {
-		extern u32 key_enter, key_escape, key_left, key_right, key_ctrl, key_backspace, key_delete, key_v, key_c, key_down, key_up;
+	u32 input_key_group = 0, key_group_current = 0;
+
+	u32 uniqueKeyGroup() {
+		++key_group_current;
+		return key_group_current;
 	}
 
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -62,13 +65,14 @@ namespace flo {
 		glfwGetCursorPos(window, &mouse_position.x, &mouse_position.y);
 	}
 
-	InputType getKey(const unsigned int key) {
+	InputType getKey(const uint key) {
 		int result = 0;
 		if (key < 0 || key >= 350) return (InputType)result;
 		return (InputType)keys[key];
 	}
 
 	void setInputString(std::string* str, bool* exit_state) {
+		if (str == editor::entered_string) return;
 		editor::entered_string = str;
 		editor::entered_clone = *str;
 		editor::exit_state = exit_state;
@@ -77,7 +81,7 @@ namespace flo {
 		editor::update_parent_string();
 	}
 
-	InputType getMouseButton(const unsigned int mouse_button) {
+	InputType getMouseButton(const uint mouse_button) {
 		int result = 0;
 		if (mouse_button < 3) {
 			result = mouse_buttons[mouse_button];
@@ -109,18 +113,14 @@ namespace flo {
 		for (int i = 0; i < size; ++i) {
 			monitored_keys[i] = to_monitor[i];
 		}
-		setEditorKey(to_monitor, size, &editor::key_backspace, GLFW_KEY_BACKSPACE);
-		setEditorKey(to_monitor, size, &editor::key_ctrl, GLFW_KEY_LEFT_CONTROL);
-		setEditorKey(to_monitor, size, &editor::key_down, GLFW_KEY_DOWN);
-		setEditorKey(to_monitor, size, &editor::key_enter, GLFW_KEY_ENTER);
-		setEditorKey(to_monitor, size, &editor::key_escape, GLFW_KEY_ESCAPE);
-		setEditorKey(to_monitor, size, &editor::key_left, GLFW_KEY_LEFT);
-		setEditorKey(to_monitor, size, &editor::key_right, GLFW_KEY_RIGHT);
-		setEditorKey(to_monitor, size, &editor::key_up, GLFW_KEY_UP);
-		setEditorKey(to_monitor, size, &editor::key_delete, GLFW_KEY_DELETE);
-		setEditorKey(to_monitor, size, &editor::key_v, GLFW_KEY_V);
-		setEditorKey(to_monitor, size, &editor::key_c, GLFW_KEY_C);
-		setEditorKey(to_monitor, size, &editor::key_up, GLFW_KEY_UP);
-		setEditorKey(to_monitor, size, &editor::key_down, GLFW_KEY_DOWN);
+	}
+
+	uint getKeyEnforced(i16 key) {
+		for (int i = 0; i < monitored_count; ++i) {
+			if (monitored_keys[i] == key) return i;
+		}
+		monitored_keys[monitored_count] = key;
+		++monitored_count;
+		return monitored_count - 1;
 	}
 }

@@ -22,7 +22,7 @@ namespace flo {
 		std::copy(associated, associated + count * element_size, buffer + count * 3);
 
 		//radix sort for indices using values
-		for (int b = 1; b < 256; b << 1) {
+		for (int b = 1; b < 256; b <<= 1) {
 			int index = 0;
 			for (int i = 0; i < count; ++i) {
 				const char byte = values[i] & b;
